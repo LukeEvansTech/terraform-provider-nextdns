@@ -48,5 +48,12 @@ release:
     - glob: terraform-registry-manifest.json
       name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
 
+# Snapshot builds carry a plain semver (next patch) rather than the default
+# "-SNAPSHOT-<sha>" prerelease, which OpenTofu will not select from a mirror
+# even under an exact constraint. CI installs the snapshot from a rendered
+# mirror to prove the archives match the protocol.
+snapshot:
+  version_template: "{{ incpatch .Version }}"
+
 changelog:
   disable: true
