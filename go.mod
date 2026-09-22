@@ -7,7 +7,6 @@ require (
 	github.com/hashicorp/terraform-plugin-log v0.10.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/matryer/is v1.4.0
-	github.com/pkg/errors v0.9.1
 )
 
 require (
