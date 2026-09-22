@@ -55,9 +55,17 @@ func resourceNextDNSParentalControlCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error creating categories settings: %w", err))
 	}
 
+	// Don't send services/categories in the PATCH - they are managed via their own endpoints
+	parentalControlPatch := &nextdns.ParentalControl{
+		SafeSearch:            parentalControl.SafeSearch,
+		YoutubeRestrictedMode: parentalControl.YoutubeRestrictedMode,
+		BlockBypass:           parentalControl.BlockBypass,
+		Recreation:            parentalControl.Recreation,
+	}
+
 	request := &nextdns.UpdateParentalControlRequest{
 		ProfileID:       profileID,
-		ParentalControl: parentalControl,
+		ParentalControl: parentalControlPatch,
 	}
 	tflog.Debug(ctx, fmt.Sprintf("request to nextdns api: %+v", request))
 
@@ -90,7 +98,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 		recreation := map[string]interface{}{}
 		recreation["timezone"] = parentalControl.Recreation.Timezone
 
-		if parentalControl.Recreation.Times.Monday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Monday != nil {
 			recreation["monday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Monday.Start,
@@ -98,7 +106,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 				},
 			}
 		}
-		if parentalControl.Recreation.Times.Tuesday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Tuesday != nil {
 			recreation["tuesday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Tuesday.Start,
@@ -106,7 +114,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 				},
 			}
 		}
-		if parentalControl.Recreation.Times.Wednesday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Wednesday != nil {
 			recreation["wednesday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Wednesday.Start,
@@ -114,7 +122,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 				},
 			}
 		}
-		if parentalControl.Recreation.Times.Thursday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Thursday != nil {
 			recreation["thursday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Thursday.Start,
@@ -122,7 +130,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 				},
 			}
 		}
-		if parentalControl.Recreation.Times.Friday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Friday != nil {
 			recreation["friday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Friday.Start,
@@ -130,7 +138,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 				},
 			}
 		}
-		if parentalControl.Recreation.Times.Saturday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Saturday != nil {
 			recreation["saturday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Saturday.Start,
@@ -138,7 +146,7 @@ func resourceNextDNSParentalControlRead(ctx context.Context, d *schema.ResourceD
 				},
 			}
 		}
-		if parentalControl.Recreation.Times.Sunday != nil {
+		if parentalControl.Recreation.Times != nil && parentalControl.Recreation.Times.Sunday != nil {
 			recreation["sunday"] = []map[string]interface{}{
 				{
 					"start": parentalControl.Recreation.Times.Sunday.Start,
@@ -217,9 +225,17 @@ func resourceNextDNSParentalControlUpdate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf("error updating categories settings: %w", err))
 	}
 
+	// Don't send services/categories in the PATCH - they are managed via their own endpoints
+	parentalControlPatch := &nextdns.ParentalControl{
+		SafeSearch:            parentalControl.SafeSearch,
+		YoutubeRestrictedMode: parentalControl.YoutubeRestrictedMode,
+		BlockBypass:           parentalControl.BlockBypass,
+		Recreation:            parentalControl.Recreation,
+	}
+
 	request := &nextdns.UpdateParentalControlRequest{
 		ProfileID:       profileID,
-		ParentalControl: parentalControl,
+		ParentalControl: parentalControlPatch,
 	}
 	tflog.Debug(ctx, fmt.Sprintf("request to nextdns api: %+v", request))
 
