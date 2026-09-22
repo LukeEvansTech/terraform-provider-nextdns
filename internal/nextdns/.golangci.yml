@@ -1,0 +1,21 @@
+linters:
+  enable:
+  - errname
+  - errorlint
+  - errcheck
+  - errorlint
+  - unused
+  - godot
+  - goerr113
+  - gofmt
+  - gofumpt
+  - gosec
+  - misspell
+  - revive
+  - thelper
+  - unconvert
+  - unconvert
+  - whitespace
+  - staticcheck
+  disable:
+  - structcheck
