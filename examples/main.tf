@@ -105,6 +105,15 @@ resource "nextdns_security" "this" {
   parking                   = true
   csam                      = false
 
+  free_hosting_domains       = false
+  tunneling_endpoints        = false
+  data_drop_services         = false
+  residential_hosting        = false
+  untrusted_certificates     = false
+  dns_payload_delivery       = false
+  decentralized_web_gateways = false
+  high_risk_tlds             = false
+
   tlds = toset([
     "pizza",
     "beer",
@@ -165,7 +174,8 @@ resource "nextdns_settings" "this" {
     cname_flattening = true
   }
 
-  web3 = true
+  web3                    = true
+  bypass_age_verification = true
 }
 
 resource "nextdns_rewrite" "this" {
@@ -193,8 +203,8 @@ data "nextdns_setup_linkedip" "this" {
 terraform {
   required_providers {
     nextdns = {
-      source  = "amalucelli/nextdns"
-      version = "0.1.0"
+      source  = "lukeevanstech/nextdns"
+      version = "~> 0.3"
     }
   }
 }

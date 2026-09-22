@@ -26,3 +26,7 @@ terraform.tfvars
 
 # Dot environment files
 .env
+
+# Local build / mirror artefacts
+dist/
+site/

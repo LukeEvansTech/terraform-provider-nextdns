@@ -1,3 +1,6 @@
+// Regenerate docs/ from the provider schema (see tools/gen-docs.sh).
+//go:generate ./tools/gen-docs.sh
+
 package main
 
 import (

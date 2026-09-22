@@ -1,28 +1,13 @@
 # Examples
 
-This directory contains examples of how to use the `terraform-provider-nextdns` provider.
+`main.tf` is a complete worked example of every resource and data source. The
+`provider/`, `resources/` and `data-sources/` directories hold the per-page
+snippets `tfplugindocs` embeds into `docs/`.
 
-## Usage
+To run `main.tf`, add a `providers.tf` (gitignored) with the provider block and
+the mirror configuration from the top-level README, then:
 
-To run this example, first create a `providers.tf` file with the following content:
-
-```hcl
-provider "nextdns" {
-  api_key = "API_KEY"
-}
-```
-
-Then, apply it with:
-
-```bash
-terraform init
-terraform apply
-```
-
-This will create a new profile called `terraform-provider-nextdns` with the configurations defined in `main.tf`.
-
-You can destroy the profile created with:
-
-```bash
-terraform destroy
+```sh
+TF_CLI_CONFIG_FILE=.tofurc tofu init
+tofu apply
 ```
