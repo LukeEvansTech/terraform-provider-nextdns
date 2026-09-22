@@ -19,7 +19,7 @@ First release of the `lukeevanstech/nextdns` fork. Schema is upstream v0.2.0 plu
 ### Changed
 
 - Module path `github.com/LukeEvansTech/terraform-provider-nextdns`; the `nextdns-go` v0.5.0 client is vendored as `internal/nextdns` (with `pkg/errors` replaced by `fmt.Errorf`).
-- Go 1.25, terraform-plugin-sdk/v2 2.40.1.
+- Go 1.26, terraform-plugin-sdk/v2 2.40.1.
 - Distribution moves from the Terraform registry to GitHub Releases plus a GitHub Pages network mirror; archives are unsigned.
 
 ## v0.2.0 and earlier
