@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/amalucelli/nextdns-go/nextdns"
+	"github.com/LukeEvansTech/terraform-provider-nextdns/internal/nextdns"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

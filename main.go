@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/amalucelli/terraform-provider-nextdns/nextdns"
+	"github.com/LukeEvansTech/terraform-provider-nextdns/nextdns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
