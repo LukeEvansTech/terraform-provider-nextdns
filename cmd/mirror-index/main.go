@@ -13,6 +13,11 @@
 // Without it, archive URLs point at -release-url, normally the GitHub
 // Release assets, and the site stays small enough for GitHub Pages.
 //
+// With -assemble DIR it instead rebuilds the whole site from a directory of
+// per-version documents (<version>.json, as written above), which is how the
+// Pages deployment is regenerated from the mirror document each release
+// carries as an asset.
+//
 // Protocol reference: https://opentofu.org/docs/internals/provider-network-mirror-protocol/
 package main
 
@@ -38,6 +43,7 @@ var (
 )
 
 type options struct {
+	assemble     string
 	dist         string
 	version      string
 	releaseURL   string
@@ -72,6 +78,7 @@ type indexDoc struct {
 func main() {
 	var o options
 	var hosts string
+	flag.StringVar(&o.assemble, "assemble", "", "rebuild the site from a directory of <version>.json documents instead of hashing archives")
 	flag.StringVar(&o.dist, "dist", "dist", "directory holding the provider zip archives")
 	flag.StringVar(&o.version, "version", "", "version without leading v, e.g. 0.3.0 (required)")
 	flag.StringVar(&o.releaseURL, "release-url", "", "base URL the archives are served from, e.g. https://github.com/OWNER/REPO/releases/download/v0.3.0 (required unless -copy-archives)")
@@ -92,6 +99,9 @@ func main() {
 var archiveRe = regexp.MustCompile(`^terraform-provider-([a-z0-9-]+)_([0-9][^_]*)_([a-z0-9]+)_([a-z0-9]+)\.zip$`)
 
 func run(o options) error {
+	if o.assemble != "" {
+		return assemble(o)
+	}
 	if o.version == "" {
 		return errVersionRequired
 	}
@@ -141,6 +151,58 @@ func run(o options) error {
 			}
 		}
 		idx.Versions[o.version] = struct{}{}
+		if err := writeJSON(filepath.Join(dir, "index.json"), idx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+var versionDocRe = regexp.MustCompile(`^([0-9][^/]*)\.json$`)
+
+// assemble writes index.json plus every <version>.json found in o.assemble
+// under each host, replacing whatever the output directory held.
+func assemble(o options) error {
+	entries, err := os.ReadDir(o.assemble)
+	if err != nil {
+		return err
+	}
+	idx := indexDoc{Versions: map[string]struct{}{}}
+	var docs []string
+	for _, e := range entries {
+		m := versionDocRe.FindStringSubmatch(e.Name())
+		if m == nil || e.Name() == "index.json" {
+			continue
+		}
+		var v versionDoc
+		b, err := os.ReadFile(filepath.Join(o.assemble, e.Name()))
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(b, &v); err != nil || len(v.Archives) == 0 {
+			return fmt.Errorf("%s is not a version document: %w", e.Name(), err)
+		}
+		idx.Versions[m[1]] = struct{}{}
+		docs = append(docs, e.Name())
+	}
+	if len(docs) == 0 {
+		return fmt.Errorf("%w: no <version>.json documents in %s", errNoArchives, o.assemble)
+	}
+	sort.Strings(docs)
+	for _, host := range o.hosts {
+		host = strings.TrimSpace(host)
+		if host == "" {
+			continue
+		}
+		dir := filepath.Join(o.out, host, o.namespace, o.typ)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+		for _, d := range docs {
+			if err := copyFile(filepath.Join(o.assemble, d), filepath.Join(dir, d)); err != nil {
+				return err
+			}
+		}
 		if err := writeJSON(filepath.Join(dir, "index.json"), idx); err != nil {
 			return err
 		}

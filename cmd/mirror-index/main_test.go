@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -143,3 +144,41 @@ func mustReadJSON(t *testing.T, path string, v any) {
 }
 
 func hasPrefix(s, p string) bool { return len(s) >= len(p) && s[:len(p)] == p }
+
+func TestAssembleRebuildsSiteFromVersionDocuments(t *testing.T) {
+	versions := t.TempDir()
+	out := t.TempDir()
+	doc := `{"archives":{"linux_amd64":{"url":"https://example/terraform-provider-nextdns_%s_linux_amd64.zip","hashes":["h1:abc="]}}}`
+	for _, v := range []string{"0.3.0", "0.3.1"} {
+		if err := os.WriteFile(filepath.Join(versions, v+".json"), []byte(fmt.Sprintf(doc, v)), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(versions, "README.md"), []byte("ignored"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	err := run(options{assemble: versions, out: out, namespace: "lukeevanstech", typ: "nextdns", hosts: []string{"registry.opentofu.org", "registry.terraform.io"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, host := range []string{"registry.opentofu.org", "registry.terraform.io"} {
+		dir := filepath.Join(out, host, "lukeevanstech", "nextdns")
+		var idx indexDoc
+		mustReadJSON(t, filepath.Join(dir, "index.json"), &idx)
+		if len(idx.Versions) != 2 {
+			t.Fatalf("%s index = %v", host, idx.Versions)
+		}
+		var v versionDoc
+		mustReadJSON(t, filepath.Join(dir, "0.3.1.json"), &v)
+		if v.Archives["linux_amd64"].Hashes[0] != "h1:abc=" {
+			t.Fatalf("0.3.1.json not copied intact: %v", v)
+		}
+	}
+}
+
+func TestAssembleRejectsEmptyDirectory(t *testing.T) {
+	if err := run(options{assemble: t.TempDir(), out: t.TempDir(), hosts: []string{"h"}}); err == nil {
+		t.Fatal("expected error with no version documents")
+	}
+}
