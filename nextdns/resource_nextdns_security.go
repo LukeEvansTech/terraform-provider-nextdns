@@ -88,6 +88,24 @@ func resourceNextDNSSecurityRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("csam", security.Csam)
 
 	d.Set("tlds", flattenTLDs(security.Tlds))
+
+	for key, value := range map[string]*bool{
+		"free_hosting_domains":       security.FreeHostingDomains,
+		"tunneling_endpoints":        security.TunnelingEndpoints,
+		"data_drop_services":         security.DataDropServices,
+		"residential_hosting":        security.ResidentialHosting,
+		"untrusted_certificates":     security.UntrustedCertificates,
+		"fast_flux_networks":         security.FastFluxNetworks,
+		"dns_data_exfiltration":      security.DNSDataExfiltration,
+		"dns_payload_delivery":       security.DNSPayloadDelivery,
+		"decentralized_web_gateways": security.DecentralizedWebGateways,
+		"high_risk_tlds":             security.HighRiskTlds,
+	} {
+		if err := setBoolIfPresent(d, key, value); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting %s: %w", key, err))
+		}
+	}
+
 	return nil
 }
 
@@ -188,6 +206,17 @@ func buildSecurity(d *schema.ResourceData) (*nextdns.Security, error) {
 		DDNS:                    d.Get("ddns").(bool),
 		Parking:                 d.Get("parking").(bool),
 		Csam:                    d.Get("csam").(bool),
+
+		FreeHostingDomains:       optionalBool(d, "free_hosting_domains"),
+		TunnelingEndpoints:       optionalBool(d, "tunneling_endpoints"),
+		DataDropServices:         optionalBool(d, "data_drop_services"),
+		ResidentialHosting:       optionalBool(d, "residential_hosting"),
+		UntrustedCertificates:    optionalBool(d, "untrusted_certificates"),
+		FastFluxNetworks:         optionalBool(d, "fast_flux_networks"),
+		DNSDataExfiltration:      optionalBool(d, "dns_data_exfiltration"),
+		DNSPayloadDelivery:       optionalBool(d, "dns_payload_delivery"),
+		DecentralizedWebGateways: optionalBool(d, "decentralized_web_gateways"),
+		HighRiskTlds:             optionalBool(d, "high_risk_tlds"),
 	}
 
 	sec.Tlds = []*nextdns.SecurityTlds{}

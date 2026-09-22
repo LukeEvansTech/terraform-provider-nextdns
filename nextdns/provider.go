@@ -15,7 +15,13 @@ func Provider() *schema.Provider {
 			"api_key": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "NextDNS API Key",
+				Sensitive:   true,
+				Description: "NextDNS API Key. Falls back to the `NEXTDNS_API_KEY` environment variable.",
+			},
+			"base_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Base URL of the NextDNS API. Defaults to `https://api.nextdns.io/`; falls back to the `NEXTDNS_BASE_URL` environment variable. Only useful for testing against a stub.",
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -50,7 +56,17 @@ func configure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.D
 		)
 	}
 
-	client, err := nextdns.New(nextdns.WithAPIKey(apiKey))
+	opts := []nextdns.ClientOption{nextdns.WithAPIKey(apiKey)}
+
+	baseURL := os.Getenv("NEXTDNS_BASE_URL")
+	if u, ok := d.Get("base_url").(string); ok && len(u) > 0 {
+		baseURL = u
+	}
+	if len(baseURL) > 0 {
+		opts = append(opts, nextdns.WithBaseURL(baseURL))
+	}
+
+	client, err := nextdns.New(opts...)
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}

@@ -98,5 +98,11 @@ func resourceNextDNSSettingsSchema() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Required:    true,
 		},
+		"bypass_age_verification": {
+			Description: "Bypass Age Verification (API: `bav`). Optional + Computed: omitting it keeps the live value and records it in state; an explicit true/false is written.",
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Computed:    true,
+		},
 	}
 }

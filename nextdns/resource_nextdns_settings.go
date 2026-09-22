@@ -125,6 +125,10 @@ func resourceNextDNSSettingsRead(ctx context.Context, d *schema.ResourceData, me
 
 	d.Set("web3", settings.Web3)
 
+	if err := setBoolIfPresent(d, "bypass_age_verification", settings.Bav); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting bypass_age_verification: %w", err))
+	}
+
 	d.SetId(profileID)
 
 	return nil
@@ -274,6 +278,7 @@ func buildSettings(d *schema.ResourceData) (*nextdns.Settings, error) {
 		BlockPage:   blockPage,
 		Performance: performance,
 		Web3:        d.Get("web3").(bool),
+		Bav:         optionalBool(d, "bypass_age_verification"),
 	}
 
 	return Settings, nil
