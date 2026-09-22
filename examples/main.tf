@@ -201,6 +201,8 @@ data "nextdns_setup_linkedip" "this" {
 }
 
 terraform {
+  required_version = ">= 1.6.0"
+
   required_providers {
     nextdns = {
       source  = "lukeevanstech/nextdns"
@@ -211,20 +213,20 @@ terraform {
 
 output "doh" {
   description = "The DNS over HTTPS address the profile is reachable at"
-  value = data.nextdns_setup_endpoint.this.dot
+  value       = data.nextdns_setup_endpoint.this.dot
 }
 
 output "dot" {
   description = "The DNS over TLS address the profile is reachable at"
-  value = data.nextdns_setup_endpoint.this.doh
+  value       = data.nextdns_setup_endpoint.this.doh
 }
 
 output "ipv6" {
   description = "The IPv6 address the profile is reachable at"
-  value = data.nextdns_setup_endpoint.this.ipv6
+  value       = data.nextdns_setup_endpoint.this.ipv6
 }
 
 output "servers" {
   description = "The DNS servers available for the profile"
-  value = data.nextdns_setup_linkedip.this.servers
+  value       = data.nextdns_setup_linkedip.this.servers
 }

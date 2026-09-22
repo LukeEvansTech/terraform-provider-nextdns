@@ -5,7 +5,7 @@
 snippets `tfplugindocs` embeds into `docs/`.
 
 To run `main.tf`, add a `providers.tf` (gitignored) with the provider block and
-the mirror configuration from the top-level README, then:
+the mirror configuration from the repository's top-level readme, then:
 
 ```sh
 TF_CLI_CONFIG_FILE=.tofurc tofu init

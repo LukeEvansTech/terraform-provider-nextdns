@@ -207,7 +207,7 @@ func (c *Client) handleResponse(_ context.Context, res *http.Response, v interfa
 		return nil
 	}
 
-	// Sets some default additional informations that can be used by the client to debug the error.
+	// Sets some default additional information that can be used by the client to debug the error.
 	meta := map[string]string{
 		"body":        string(out),
 		"http_status": http.StatusText(res.StatusCode),

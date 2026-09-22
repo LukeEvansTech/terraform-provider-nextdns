@@ -50,11 +50,11 @@ provider "nextdns" {
 
 All eleven are `Optional + Computed` booleans with the same three-way behaviour:
 
-| Written in configuration | What the provider does |
-| --- | --- |
-| omitted | sends nothing for it; the live value is preserved and recorded in state |
-| `false` or `true` | writes that value |
-| (API stops returning it) | state keeps the last known value; no diff |
+| Written in configuration | What the provider does                                                  |
+| ------------------------ | ----------------------------------------------------------------------- |
+| omitted                  | sends nothing for it; the live value is preserved and recorded in state |
+| `false` or `true`        | writes that value                                                       |
+| (API stops returning it) | state keeps the last known value; no diff                               |
 
 `fast_flux_networks` and `dns_data_exfiltration` are returned by the API for every profile inspected but hidden in the dashboard for some. The API accepts them on read; whether a write takes effect on a given profile has not been verified. Leave them omitted until it has been on yours.
 

@@ -1,3 +1,4 @@
+// editorconfig-checker-disable-file: HCL in raw strings is space-indented.
 package nextdns
 
 import (

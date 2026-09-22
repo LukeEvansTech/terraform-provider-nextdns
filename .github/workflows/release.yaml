@@ -50,7 +50,7 @@ jobs:
             -release-url "https://github.com/${REPO}/releases/download/${TAG}" \
             -hosts registry.opentofu.org
           cp "site/registry.opentofu.org/lukeevanstech/nextdns/${version}.json" \
-             "terraform-provider-nextdns_${version}_mirror.json"
+            "terraform-provider-nextdns_${version}_mirror.json"
           gh release upload "$TAG" "terraform-provider-nextdns_${version}_mirror.json" --clobber
 
   pages:
@@ -87,8 +87,8 @@ jobs:
             | while read -r tag; do
                 version="${tag#v}"
                 if gh release download "$tag" --repo "$REPO" \
-                     --pattern "terraform-provider-nextdns_${version}_mirror.json" \
-                     --output "versions/${version}.json" 2>/dev/null; then
+                  --pattern "terraform-provider-nextdns_${version}_mirror.json" \
+                  --output "versions/${version}.json" 2>/dev/null; then
                   echo "collected ${version}"
                 else
                   echo "no mirror document on ${tag}; skipped"

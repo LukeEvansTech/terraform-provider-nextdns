@@ -12,9 +12,9 @@ trap 'rm -rf "$work"' EXIT
 
 tofu_bin="${TOFU:-$(command -v tofu)}"
 
-( cd "$root" && go build -o "$work/terraform-provider-nextdns" . )
+(cd "$root" && go build -o "$work/terraform-provider-nextdns" .)
 
-cat > "$work/cli.tfrc" <<CFG
+cat >"$work/cli.tfrc" <<CFG
 provider_installation {
   dev_overrides {
     "lukeevanstech/nextdns" = "$work"
@@ -24,7 +24,7 @@ provider_installation {
 CFG
 
 mkdir -p "$work/cfg"
-cat > "$work/cfg/main.tf" <<'TF'
+cat >"$work/cfg/main.tf" <<'TF'
 terraform {
   required_providers {
     nextdns = {
@@ -34,7 +34,7 @@ terraform {
 }
 TF
 
-( cd "$work/cfg" && TF_CLI_CONFIG_FILE="$work/cli.tfrc" "$tofu_bin" providers schema -json > "$work/schema.raw.json" 2>/dev/null )
+(cd "$work/cfg" && TF_CLI_CONFIG_FILE="$work/cli.tfrc" "$tofu_bin" providers schema -json >"$work/schema.raw.json" 2>/dev/null)
 
 # tfplugindocs looks the provider up by its short name (or under the hashicorp
 # namespace); OpenTofu keys the schema under registry.opentofu.org. Re-key it.
@@ -50,7 +50,7 @@ doc["provider_schemas"] = rekeyed
 json.dump(doc, open(sys.argv[2], "w"))
 PY
 
-( cd "$root" && go tool tfplugindocs generate \
-    --provider-name nextdns \
-    --rendered-provider-name NextDNS \
-    --providers-schema "$work/schema.json" )
+(cd "$root" && go tool tfplugindocs generate \
+  --provider-name nextdns \
+  --rendered-provider-name NextDNS \
+  --providers-schema "$work/schema.json")

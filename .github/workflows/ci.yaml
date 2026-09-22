@@ -117,11 +117,14 @@ jobs:
             }
           }
           CFG
-          cat > check/main.tf <<'TF'
+          # A snapshot version is a prerelease, which tofu only selects under an
+          # exact constraint.
+          cat > check/main.tf <<TF
           terraform {
             required_providers {
               nextdns = {
-                source = "lukeevanstech/nextdns"
+                source  = "lukeevanstech/nextdns"
+                version = "$version"
               }
             }
           }
