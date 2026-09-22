@@ -31,6 +31,12 @@ import (
 	"golang.org/x/mod/sumdb/dirhash"
 )
 
+var (
+	errVersionRequired    = errors.New("-version is required")
+	errReleaseURLRequired = errors.New("-release-url is required unless -copy-archives is set")
+	errNoArchives         = errors.New("no provider archives found")
+)
+
 type options struct {
 	dist         string
 	version      string
@@ -87,17 +93,17 @@ var archiveRe = regexp.MustCompile(`^terraform-provider-([a-z0-9-]+)_([0-9][^_]*
 
 func run(o options) error {
 	if o.version == "" {
-		return errors.New("-version is required")
+		return errVersionRequired
 	}
 	if o.releaseURL == "" && !o.copyArchives {
-		return errors.New("-release-url is required unless -copy-archives is set")
+		return errReleaseURLRequired
 	}
 	archives, err := findArchives(o.dist, o.typ, o.version)
 	if err != nil {
 		return err
 	}
 	if len(archives) == 0 {
-		return fmt.Errorf("no terraform-provider-%s_%s_<os>_<arch>.zip archives in %s", o.typ, o.version, o.dist)
+		return fmt.Errorf("%w: terraform-provider-%s_%s_<os>_<arch>.zip in %s", errNoArchives, o.typ, o.version, o.dist)
 	}
 
 	for _, host := range o.hosts {
@@ -168,7 +174,7 @@ func writeJSON(path string, v any) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, append(b, '\n'), 0o644)
+	return os.WriteFile(path, append(b, '\n'), 0o644) //nolint:gosec // static site files are meant to be world-readable
 }
 
 func copyFile(src, dst string) error {

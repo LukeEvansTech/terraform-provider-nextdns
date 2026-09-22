@@ -66,7 +66,7 @@ func TestSecurity_OmittedExtendedAttributesPreserveLive(t *testing.T) {
 	for attr := range extendedSecurityAttrs {
 		checks = append(checks, resource.TestCheckResourceAttr("nextdns_security.this", attr, "false"))
 	}
-	checks = append(checks, func(s *terraformState) error {
+	checks = append(checks, func(_ *terraformState) error {
 		for _, r := range f.requests("PATCH", "/security") {
 			for _, apiKey := range extendedSecurityAttrs {
 				if _, present := r.Body[apiKey]; present {
@@ -113,7 +113,7 @@ func TestSecurity_ExplicitFalseIsWritten(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("nextdns_security.this", "high_risk_tlds", "false"),
 					resource.TestCheckResourceAttr("nextdns_security.this", "free_hosting_domains", "false"),
-					func(s *terraformState) error {
+					func(_ *terraformState) error {
 						v, ok := f.get("abc123", "security", "highRiskTlds")
 						if !ok || v != false {
 							return fmt.Errorf("API highRiskTlds = %v (present %v), want false", v, ok)
@@ -150,7 +150,7 @@ func TestSecurity_ExplicitTrueRoundTrip(t *testing.T) {
 				Config: securityConfig(f, `  tunneling_endpoints = true`),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("nextdns_security.this", "tunneling_endpoints", "true"),
-					func(s *terraformState) error {
+					func(_ *terraformState) error {
 						v, _ := f.get("abc123", "security", "tunnelingEndpoints")
 						if v != true {
 							return fmt.Errorf("API tunnelingEndpoints = %v, want true", v)

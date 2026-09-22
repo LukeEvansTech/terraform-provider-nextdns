@@ -108,7 +108,7 @@ func NewProfilesService(client *Client) *profilesService {
 }
 
 // List returns a list of profiles.
-func (s *profilesService) List(ctx context.Context, request *ListProfileRequest) ([]*Profiles, error) {
+func (s *profilesService) List(ctx context.Context, _ *ListProfileRequest) ([]*Profiles, error) {
 	req, err := s.client.newRequest(http.MethodGet, profilesAPIPath, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request to list the profiles: %w", err)

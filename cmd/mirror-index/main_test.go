@@ -38,7 +38,7 @@ func TestRunWritesProtocolDocumentsForEveryHost(t *testing.T) {
 	makeZip(t, filepath.Join(dist, "terraform-provider-nextdns_0.3.0_darwin_arm64.zip"), "terraform-provider-nextdns_v0.3.0", "darwin")
 	makeZip(t, filepath.Join(dist, "terraform-provider-nextdns_0.3.0_linux_amd64.zip"), "terraform-provider-nextdns_v0.3.0", "linux")
 	makeZip(t, filepath.Join(dist, "terraform-provider-nextdns_0.2.9_linux_amd64.zip"), "terraform-provider-nextdns_v0.2.9", "old") // other version: ignored
-	if err := os.WriteFile(filepath.Join(dist, "terraform-provider-nextdns_0.3.0_SHA256SUMS"), []byte("x"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dist, "terraform-provider-nextdns_0.3.0_SHA256SUMS"), []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -92,7 +92,7 @@ func TestRunMergesExistingIndexAndCopiesArchives(t *testing.T) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "index.json"), []byte(`{"versions":{"0.3.0":{}}}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "index.json"), []byte(`{"versions":{"0.3.0":{}}}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 

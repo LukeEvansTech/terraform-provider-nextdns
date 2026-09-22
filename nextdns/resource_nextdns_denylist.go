@@ -2,7 +2,6 @@ package nextdns
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/LukeEvansTech/terraform-provider-nextdns/internal/nextdns"
@@ -139,7 +138,7 @@ func buildDenylist(d *schema.ResourceData) ([]*nextdns.Denylist, error) {
 	found, ok := d.GetOk("domain")
 	if !ok {
 		// nolint:goerr113
-		return nil, errors.New("unable to find domain in resource data")
+		return nil, fmt.Errorf("%w: domain", errNotInResourceData)
 	}
 
 	records := found.(*schema.Set).List()

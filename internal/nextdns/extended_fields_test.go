@@ -104,7 +104,7 @@ func TestSecurityUpdateSendsExplicitExtendedValues(t *testing.T) {
 
 func TestSecurityGetExtendedFieldsPresent(t *testing.T) {
 	c := is.New(t)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"data":{"threatIntelligenceFeeds":true,"freeHostingDomains":false,"tunnelingEndpoints":true,"highRiskTlds":false}}`))
 	}))
@@ -127,7 +127,7 @@ func TestSecurityGetExtendedFieldsPresent(t *testing.T) {
 
 func TestSecurityGetExtendedFieldsAbsent(t *testing.T) {
 	c := is.New(t)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"data":{"threatIntelligenceFeeds":true,"csam":true}}`))
 	}))
@@ -186,7 +186,7 @@ func TestSettingsGetBav(t *testing.T) {
 		`{"data":{"web3":true}}`,
 	}
 	i := 0
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(bodies[i]))
 		i++

@@ -109,12 +109,6 @@ func (f *fakeAPI) requests(method, pathSuffix string) []recordedRequest {
 	return out
 }
 
-func (f *fakeAPI) reset() {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.reqs = nil
-}
-
 func (f *fakeAPI) handle(w http.ResponseWriter, r *http.Request) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

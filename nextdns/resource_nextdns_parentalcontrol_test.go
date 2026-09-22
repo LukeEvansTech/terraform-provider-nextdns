@@ -43,7 +43,7 @@ resource "nextdns_parental_control" "this" {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("nextdns_parental_control.this", "block_bypass", "true"),
 					resource.TestCheckResourceAttr("nextdns_parental_control.this", "service.#", "1"),
-					func(s *terraformState) error {
+					func(_ *terraformState) error {
 						reqs := f.requests("PATCH", "/parentalControl")
 						if len(reqs) == 0 {
 							return fmt.Errorf("expected a PATCH /parentalControl")

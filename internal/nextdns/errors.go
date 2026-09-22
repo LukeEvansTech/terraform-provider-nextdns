@@ -50,11 +50,11 @@ type Error struct {
 func (e *Error) Error() string {
 	var out strings.Builder
 
-	if e.Errors.Errors != nil && len(e.Errors.Errors) > 0 {
-		out.WriteString(fmt.Sprintf("%s (%s): ", e.Message, e.Type))
+	if len(e.Errors.Errors) > 0 {
+		fmt.Fprintf(&out, "%s (%s): ", e.Message, e.Type)
 		for _, er := range e.Errors.Errors {
 			if er.Detail != "" {
-				out.WriteString(fmt.Sprintf("%s (%s)", er.Detail, er.Code))
+				fmt.Fprintf(&out, "%s (%s)", er.Detail, er.Code)
 			} else {
 				out.WriteString(er.Code)
 			}

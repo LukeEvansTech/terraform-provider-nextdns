@@ -1,0 +1,10 @@
+[tools]
+go = "1.25"
+opentofu = "1.12.6"
+goreleaser = "latest"
+golangci-lint = "latest"
+
+[env]
+# terraform-plugin-testing is pointed at the tofu on PATH by TestMain; this
+# keeps the provider address it generates on the OpenTofu registry host.
+TF_ACC_PROVIDER_HOST = "registry.opentofu.org"

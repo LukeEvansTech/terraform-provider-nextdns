@@ -55,7 +55,7 @@ func TestSettings_OmittedBavPreservesLive(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("nextdns_settings.this", "bypass_age_verification", "true"),
 					resource.TestCheckResourceAttr("nextdns_settings.this", "web3", "true"),
-					func(s *terraformState) error {
+					func(_ *terraformState) error {
 						reqs := f.requests("PATCH", "/settings")
 						if len(reqs) == 0 {
 							return fmt.Errorf("expected a PATCH /settings")
@@ -93,7 +93,7 @@ func TestSettings_ExplicitBavIsWrittenBothWays(t *testing.T) {
 				Config: settingsConfig(f, `  bypass_age_verification = false`),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("nextdns_settings.this", "bypass_age_verification", "false"),
-					func(s *terraformState) error {
+					func(_ *terraformState) error {
 						if v, _ := f.get("abc123", "settings", "bav"); v != false {
 							return fmt.Errorf("API bav = %v, want false", v)
 						}
@@ -108,7 +108,7 @@ func TestSettings_ExplicitBavIsWrittenBothWays(t *testing.T) {
 						plancheck.ExpectResourceAction("nextdns_settings.this", plancheck.ResourceActionUpdate),
 					},
 				},
-				Check: func(s *terraformState) error {
+				Check: func(_ *terraformState) error {
 					if v, _ := f.get("abc123", "settings", "bav"); v != true {
 						return fmt.Errorf("API bav = %v, want true", v)
 					}

@@ -12,7 +12,7 @@ import (
 func TestAllowlistCreate(t *testing.T) {
 	c := is.New(t)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		_, err := w.Write([]byte(""))
 		c.NoErr(err)
@@ -43,7 +43,7 @@ func TestAllowlistCreate(t *testing.T) {
 func TestAllowlistGet(t *testing.T) {
 	c := is.New(t)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		out := `{"data":[{"id":"google.com","active":false},{"id":"duckduckgo.com","active":true}]}`
 		_, err := w.Write([]byte(out))
@@ -76,7 +76,7 @@ func TestAllowlistGet(t *testing.T) {
 func TestAllowlistUpdate(t *testing.T) {
 	c := is.New(t)
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		_, err := w.Write([]byte(""))
 		c.NoErr(err)
