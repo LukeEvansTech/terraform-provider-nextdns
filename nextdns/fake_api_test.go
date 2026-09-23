@@ -101,6 +101,13 @@ func (f *fakeAPI) get(profile, path, key string) (any, bool) {
 	return v, ok
 }
 
+// list returns a copy of a stored list.
+func (f *fakeAPI) list(profile, path string) []any {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return append([]any(nil), f.lists[profile+"/"+path]...)
+}
+
 // requests returns the recorded requests matching method and path suffix.
 func (f *fakeAPI) requests(method, pathSuffix string) []recordedRequest {
 	f.mu.Lock()
