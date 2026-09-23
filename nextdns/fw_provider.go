@@ -89,10 +89,12 @@ func (p *frameworkProvider) Resources(_ context.Context) []func() resource.Resou
 	return []func() resource.Resource{
 		newAllowlistResource,
 		newDenylistResource,
+		newParentalControlResource,
 		newPrivacyResource,
 		newProfileResource,
 		newRewriteResource,
 		newSecurityResource,
+		newSettingsResource,
 	}
 }
 

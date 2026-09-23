@@ -51,19 +51,19 @@ resource "nextdns_settings" "this" {
 
 ### Required
 
-- `block_page` (Block List, Min: 1) Block Page. (see [below for nested schema](#nestedblock--block_page))
-- `logs` (Block List, Min: 1) Logs. (see [below for nested schema](#nestedblock--logs))
-- `performance` (Block List, Min: 1) Performance. (see [below for nested schema](#nestedblock--performance))
 - `profile_id` (String) The profile identifier to target the resource.
 - `web3` (Boolean) Web3.
 
 ### Optional
 
+- `block_page` (Block List) Block Page. (see [below for nested schema](#nestedblock--block_page))
 - `bypass_age_verification` (Boolean) Bypass Age Verification (API: `bav`). Optional + Computed: omitting it keeps the live value and records it in state; an explicit true/false is written.
+- `logs` (Block List) Logs. (see [below for nested schema](#nestedblock--logs))
+- `performance` (Block List) Performance. (see [below for nested schema](#nestedblock--performance))
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 
 <a id="nestedblock--block_page"></a>
 ### Nested Schema for `block_page`
@@ -80,8 +80,11 @@ Required:
 
 - `enabled` (Boolean) Enable logs.
 - `location` (String) Location of the logs.
-- `privacy` (Block List, Min: 1) (see [below for nested schema](#nestedblock--logs--privacy))
 - `retention` (String) Retention period for logs.
+
+Optional:
+
+- `privacy` (Block List) (see [below for nested schema](#nestedblock--logs--privacy))
 
 <a id="nestedblock--logs--privacy"></a>
 ### Nested Schema for `logs.privacy`

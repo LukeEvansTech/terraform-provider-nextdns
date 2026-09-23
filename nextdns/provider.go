@@ -28,10 +28,7 @@ func Provider() *schema.Provider {
 			"nextdns_setup_endpoint": dataSourceNextDNSSetupEndpoint(),
 			"nextdns_setup_linkedip": dataSourceNextDNSSetupLinkedIP(),
 		},
-		ResourcesMap: map[string]*schema.Resource{
-			"nextdns_parental_control": resourceNextDNSParentalControl(),
-			"nextdns_settings":         resourceNextDNSSettings(),
-		},
+		ResourcesMap:         map[string]*schema.Resource{},
 		ConfigureContextFunc: configure,
 	}
 }

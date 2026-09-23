@@ -3,6 +3,7 @@ package nextdns
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -70,5 +71,69 @@ resource "nextdns_parental_control" "this" {
 				},
 			},
 		},
+	})
+}
+
+func scheduleConfig(f *fakeAPI, monday string) string {
+	return providerBlock(f) + fmt.Sprintf(`
+resource "nextdns_parental_control" "this" {
+  profile_id              = "abc123"
+  safe_search             = true
+  youtube_restricted_mode = true
+  block_bypass            = false
+
+  recreation {
+    timezone = "Europe/London"
+    monday {
+      start = "18:00:00"
+      end   = %q
+    }
+  }
+}
+`, monday)
+}
+
+// A schedule change is written and read back; a malformed time is refused
+// before anything is sent.
+func TestParentalControl_ScheduleUpdateAndValidation(t *testing.T) {
+	f := newFakeAPI(t)
+	f.seed("abc123", "parentalControl", `{"safeSearch": false, "youtubeRestrictedMode": false, "blockBypass": true}`)
+	f.seed("abc123", "parentalControl/services", `[]`)
+	f.seed("abc123", "parentalControl/categories", `[]`)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: scheduleConfig(f, "20:30:00"),
+				Check:  resource.TestCheckResourceAttr("nextdns_parental_control.this", "recreation.0.monday.0.end", "20:30:00"),
+			},
+			{
+				Config: scheduleConfig(f, "21:00:00"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("nextdns_parental_control.this", plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: func(_ *terraformState) error {
+					rec, _ := f.get("abc123", "parentalControl", "recreation")
+					times, _ := rec.(map[string]any)["times"].(map[string]any)
+					monday, _ := times["monday"].(map[string]any)
+					if monday["end"] != "21:00:00" {
+						return fmt.Errorf("API monday = %v, want end 21:00:00", monday)
+					}
+					return nil
+				},
+			},
+		},
+	})
+
+	// Separate case: the harness destroys with the last step's config.
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{{
+			Config:      scheduleConfig(f, "25:00:00"),
+			ExpectError: regexp.MustCompile(`Must be in HH:MM:00 format`),
+		}},
 	})
 }
