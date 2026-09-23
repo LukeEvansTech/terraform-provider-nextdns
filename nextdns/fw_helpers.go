@@ -20,6 +20,16 @@ func idAttribute() schema.StringAttribute {
 	}
 }
 
+// profileIDAttribute is the profile_id every profile-scoped resource takes.
+// As under SDKv2 it is not ForceNew: changing it writes the new profile and
+// leaves the old one as it was.
+func profileIDAttribute() schema.StringAttribute {
+	return schema.StringAttribute{
+		Description: "The profile identifier to target the resource.",
+		Required:    true,
+	}
+}
+
 // clientFrom unpacks the API client the provider's Configure produced. It
 // returns nil without a diagnostic when the provider is not configured yet,
 // which the framework does during validation.

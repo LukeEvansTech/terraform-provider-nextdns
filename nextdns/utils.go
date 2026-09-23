@@ -1,13 +1,8 @@
 package nextdns
 
 import (
-	"errors"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-// errNotInResourceData is returned when a nested block lookup finds nothing.
-var errNotInResourceData = errors.New("unable to find item in resource data")
 
 const (
 	// NextDNSDomain is the domain name of the NextDNS service.

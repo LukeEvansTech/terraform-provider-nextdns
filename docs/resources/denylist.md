@@ -33,12 +33,15 @@ resource "nextdns_denylist" "this" {
 
 ### Required
 
-- `domain` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--domain))
 - `profile_id` (String) The profile identifier to target the resource.
+
+### Optional
+
+- `domain` (Block Set) (see [below for nested schema](#nestedblock--domain))
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 
 <a id="nestedblock--domain"></a>
 ### Nested Schema for `domain`

@@ -29,11 +29,14 @@ resource "nextdns_rewrite" "this" {
 ### Required
 
 - `profile_id` (String) The profile identifier to target the resource.
-- `rewrite` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--rewrite))
+
+### Optional
+
+- `rewrite` (Block Set) (see [below for nested schema](#nestedblock--rewrite))
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 
 <a id="nestedblock--rewrite"></a>
 ### Nested Schema for `rewrite`
