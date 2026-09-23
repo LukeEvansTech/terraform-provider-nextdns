@@ -4,7 +4,9 @@
 
 Plugin Framework conversion, in progress.
 
-- Changed: the provider is served through `terraform-plugin-mux`, with the Plugin Framework and SDKv2 side by side while resources move across one at a time. On the framework so far: `nextdns_profile`, `nextdns_allowlist`, `nextdns_denylist`, `nextdns_rewrite`, `nextdns_privacy`, `nextdns_security`, `nextdns_settings`, `nextdns_parental_control`. Their schemas are unchanged apart from `id`, which is now computed only.
+- Changed: the provider is served through `terraform-plugin-mux`, with the Plugin Framework and SDKv2 side by side while resources move across one at a time.
+- Changed: on the framework so far: `nextdns_profile`, `nextdns_allowlist`, `nextdns_denylist`, `nextdns_rewrite`, `nextdns_privacy`, `nextdns_security`, `nextdns_settings`, `nextdns_parental_control`.
+- Changed: schemas are unchanged apart from `id`, which is now computed only. Required blocks enforce their minimum with a validator instead of `min_items`.
 - Added: migration tests: each resource is applied with v0.3.0, installed from the Pages mirror, and must then plan no changes under the provider being built.
 
 ## v0.3.0 (2026-09-23)
