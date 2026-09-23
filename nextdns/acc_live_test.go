@@ -16,12 +16,13 @@ import (
 // Live acceptance test. Opt-in only: it runs when TF_ACC=1 and
 // NEXTDNS_API_KEY are both set, creates a throwaway profile named
 // "tf-acc-<random>" in that account, writes every v0.3.0 attribute to it
-// (including the two that some dashboards hide), reads them back through
+// (including the ones whose writes were in doubt), reads them back through
 // the raw API, and destroys the profile at the end. It never touches any
 // pre-existing profile.
 //
 // fast_flux_networks and dns_data_exfiltration are hidden in the dashboard
-// for some profiles, so a write to them is the thing in doubt. They are
+// for some profiles, and newly_active_domains only recently appeared in the
+// API, so a write to any of them is the thing in doubt. They are
 // flipped true, read back, then flipped false and read back again: writing
 // false alone would pass whether or not the API honours the field.
 //
@@ -70,6 +71,7 @@ resource "nextdns_security" "acc" {
   dns_payload_delivery       = false
   decentralized_web_gateways = false
   high_risk_tlds             = %[2]t
+  newly_active_domains       = %[4]t
 }
 
 resource "nextdns_settings" "acc" {
@@ -161,12 +163,13 @@ resource "nextdns_settings" "acc" {
 }
 
 // checkLiveSwitches asserts the live security switches on the throwaway
-// profile: the two dashboard-hidden ones must be present and equal
+// profile: the three whose writes are in doubt must be present and equal
 // wantHidden, and the other extended switches must not be true.
 func checkLiveSwitches(t *testing.T, sec *nextdns.Security, wantHidden bool) error {
 	t.Helper()
 	for k, v := range map[string]*bool{
 		"fastFluxNetworks": sec.FastFluxNetworks, "dnsDataExfiltration": sec.DNSDataExfiltration,
+		"newlyActiveDomains": sec.NewlyActiveDomains,
 	} {
 		if v == nil {
 			return fmt.Errorf("live API did not return %s", k)

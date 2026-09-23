@@ -113,6 +113,7 @@ resource "nextdns_security" "this" {
   dns_payload_delivery       = false
   decentralized_web_gateways = false
   high_risk_tlds             = false
+  newly_active_domains       = false
 
   tlds = toset([
     "pizza",

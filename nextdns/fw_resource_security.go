@@ -49,6 +49,7 @@ type securityModel struct {
 	DNSPayloadDelivery       types.Bool `tfsdk:"dns_payload_delivery"`
 	DecentralizedWebGateways types.Bool `tfsdk:"decentralized_web_gateways"`
 	HighRiskTlds             types.Bool `tfsdk:"high_risk_tlds"`
+	NewlyActiveDomains       types.Bool `tfsdk:"newly_active_domains"`
 }
 
 // securitySwitch pairs an extended switch in the model with its API field,
@@ -70,6 +71,7 @@ func (m *securityModel) extended(s *nextdns.Security) []securitySwitch {
 		{&m.DNSPayloadDelivery, &s.DNSPayloadDelivery},
 		{&m.DecentralizedWebGateways, &s.DecentralizedWebGateways},
 		{&m.HighRiskTlds, &s.HighRiskTlds},
+		{&m.NewlyActiveDomains, &s.NewlyActiveDomains},
 	}
 }
 
@@ -120,6 +122,7 @@ func (r *securityResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"dns_payload_delivery":       extendedSwitch("Block DNS payload delivery (API: `dnsPayloadDelivery`)."),
 			"decentralized_web_gateways": extendedSwitch("Block decentralized web (IPFS, ENS) gateways (API: `decentralizedWebGateways`)."),
 			"high_risk_tlds":             extendedSwitch("Block high-risk TLDs (API: `highRiskTlds`)."),
+			"newly_active_domains":       extendedSwitch("Block newly active domains (API: `newlyActiveDomains`). Returned by the API since September 2026."),
 		},
 	}
 }

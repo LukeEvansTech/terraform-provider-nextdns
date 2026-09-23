@@ -41,6 +41,7 @@ resource "nextdns_security" "this" {
   dns_payload_delivery       = false
   decentralized_web_gateways = false
   high_risk_tlds             = false
+  newly_active_domains       = false
 
   # fast_flux_networks and dns_data_exfiltration are returned by the API but
   # hidden in the dashboard for some profiles; omit them until a write has
@@ -76,6 +77,7 @@ resource "nextdns_security" "this" {
 - `fast_flux_networks` (Boolean) Block fast-flux networks (API: `fastFluxNetworks`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified.
 - `free_hosting_domains` (Boolean) Block domains on free hosting providers (API: `freeHostingDomains`).
 - `high_risk_tlds` (Boolean) Block high-risk TLDs (API: `highRiskTlds`).
+- `newly_active_domains` (Boolean) Block newly active domains (API: `newlyActiveDomains`). Returned by the API since September 2026.
 - `residential_hosting` (Boolean) Block domains served from residential IP space (API: `residentialHosting`).
 - `tlds` (List of String) Block top-level domains (TLDs).
 - `tunneling_endpoints` (Boolean) Block tunneling and DNS-over-anything endpoints (API: `tunnelingEndpoints`).

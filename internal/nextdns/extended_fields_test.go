@@ -11,8 +11,9 @@ import (
 	"github.com/matryer/is"
 )
 
-// extendedSecurityKeys are the ten security switches added in v0.3.0 that the
-// NextDNS API exposes but upstream nextdns-go v0.5.0 did not model.
+// extendedSecurityKeys are the security switches the NextDNS API exposes but
+// upstream nextdns-go v0.5.0 did not model: ten added in v0.3.0, and
+// newlyActiveDomains, which the API began returning in September 2026.
 var extendedSecurityKeys = []string{
 	"freeHostingDomains",
 	"tunnelingEndpoints",
@@ -24,6 +25,7 @@ var extendedSecurityKeys = []string{
 	"dnsPayloadDelivery",
 	"decentralizedWebGateways",
 	"highRiskTlds",
+	"newlyActiveDomains",
 }
 
 // capturePatch returns a test server that records the JSON body of the last
@@ -89,6 +91,7 @@ func TestSecurityUpdateSendsExplicitExtendedValues(t *testing.T) {
 			DNSPayloadDelivery:       Bool(false),
 			DecentralizedWebGateways: Bool(false),
 			HighRiskTlds:             Bool(false),
+			NewlyActiveDomains:       Bool(false),
 		},
 	})
 	c.NoErr(err)
@@ -140,7 +143,7 @@ func TestSecurityGetExtendedFieldsAbsent(t *testing.T) {
 	for _, p := range []*bool{
 		sec.FreeHostingDomains, sec.TunnelingEndpoints, sec.DataDropServices, sec.ResidentialHosting,
 		sec.UntrustedCertificates, sec.FastFluxNetworks, sec.DNSDataExfiltration, sec.DNSPayloadDelivery,
-		sec.DecentralizedWebGateways, sec.HighRiskTlds,
+		sec.DecentralizedWebGateways, sec.HighRiskTlds, sec.NewlyActiveDomains,
 	} {
 		c.True(p == nil)
 	}

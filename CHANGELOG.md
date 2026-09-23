@@ -7,6 +7,7 @@ The provider is rewritten on the Terraform Plugin Framework. Configuration, stat
 - Changed: every resource and data source is implemented with `terraform-plugin-framework`, served over protocol 5 as before. SDKv2 and the interim `terraform-plugin-mux` are gone.
 - Changed: `id` is computed only; it was optional and computed. Required blocks enforce their minimum with a validator instead of `min_items`.
 - Changed: data-source list attributes are an empty list, never null, when the API returns none.
+- Added: `nextdns_security.newly_active_domains` (API `security.newlyActiveDomains`), which the API began returning in September 2026. Optional + Computed like the other extended switches, and covered by the live acceptance test, which writes it true and then false.
 - Added: migration tests: each resource is applied with v0.3.0, installed from the Pages mirror, and must then plan no changes under the provider being built.
 
 ## v0.3.0 (2026-09-23)
