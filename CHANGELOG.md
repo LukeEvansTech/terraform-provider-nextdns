@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Changed: `nextdns_setup_linkedip.update_token` is marked sensitive, because it authorises changing the profile's linked IP. Plans redact it, and an output that exposes it now needs `sensitive = true`. The value in state is unchanged.
+
 ## v0.4.0 (2026-09-23)
 
 The provider is rewritten on the Terraform Plugin Framework. Configuration, state and behaviour are unchanged: every resource created with v0.3.0 plans no changes under this version, which the migration tests and a plan against the live profiles both show.

@@ -2,6 +2,7 @@
 package nextdns
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -39,5 +40,40 @@ output "ipv6_count" {
 				resource.TestCheckResourceAttr("data.nextdns_setup_linkedip.this", "servers.0", "45.90.28.1"),
 			),
 		}},
+	})
+}
+
+// update_token authorises changing the profile's linked IP, so it is marked
+// sensitive: an output that exposes it must say so, and plan output redacts it.
+func TestDataSources_LinkedIPUpdateTokenIsSensitive(t *testing.T) {
+	f := newFakeAPI(t)
+	f.seed("abc123", "setup/linkedip", `{"servers": ["45.90.28.1"], "ip": "192.0.2.1", "ddns": "", "updateToken": "not-a-real-token"}`)
+	config := func(sensitive string) string {
+		return providerBlock(f) + `
+data "nextdns_setup_linkedip" "this" {
+  profile_id = "abc123"
+}
+
+output "token" {
+  value = data.nextdns_setup_linkedip.this.update_token
+` + sensitive + `}
+`
+	}
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config:      config(""),
+				ExpectError: regexp.MustCompile(`(?i)output refers to sensitive values`),
+			},
+			{
+				Config: config("  sensitive = true\n"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.nextdns_setup_linkedip.this", "update_token", "not-a-real-token"),
+					resource.TestCheckOutput("token", "not-a-real-token"),
+				),
+			},
+		},
 	})
 }
