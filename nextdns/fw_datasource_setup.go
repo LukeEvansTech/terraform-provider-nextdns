@@ -154,8 +154,9 @@ func (d *setupLinkedIPDataSource) Schema(_ context.Context, _ datasource.SchemaR
 				Computed:    true,
 			},
 			"update_token": schema.StringAttribute{
-				Description: "The update token to use to update the linked IP.",
+				Description: "The update token to use to update the linked IP. Sensitive: it authorises changing the profile's linked IP.",
 				Computed:    true,
+				Sensitive:   true,
 			},
 		},
 	}

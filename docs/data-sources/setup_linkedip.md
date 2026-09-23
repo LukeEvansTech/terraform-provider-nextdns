@@ -35,4 +35,4 @@ output "servers" {
 - `id` (String) The profile identifier; the same value as `profile_id`.
 - `ip` (String) The IP linked to the profile.
 - `servers` (List of String) The DNS servers available for the profile.
-- `update_token` (String) The update token to use to update the linked IP.
+- `update_token` (String, Sensitive) The update token to use to update the linked IP. Sensitive: it authorises changing the profile's linked IP.
