@@ -40,7 +40,7 @@ resource "nextdns_privacy" "this" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 
 ## Import
 
