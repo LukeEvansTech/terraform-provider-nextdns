@@ -12,9 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// frameworkProvider is the Plugin Framework half of the provider. Its schema
-// and configuration behaviour must match the SDKv2 Provider() exactly while
-// both are muxed.
+// frameworkProvider is the NextDNS provider. Its schema and configuration
+// behaviour are those of the SDKv2 provider it replaced.
 type frameworkProvider struct{}
 
 type frameworkProviderModel struct {
@@ -99,5 +98,8 @@ func (p *frameworkProvider) Resources(_ context.Context) []func() resource.Resou
 }
 
 func (p *frameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return nil
+	return []func() datasource.DataSource{
+		newSetupEndpointDataSource,
+		newSetupLinkedIPDataSource,
+	}
 }

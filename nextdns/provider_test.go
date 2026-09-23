@@ -56,15 +56,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestProviderInternalValidate(t *testing.T) {
-	if err := Provider().InternalValidate(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// The mux refuses to start when the two halves disagree on the provider
-// schema or both claim a type, so starting it and fetching the schema is
-// the check that the split is consistent.
+// Starting the server and fetching the schema validates every resource and
+// data source schema, and checks that none went missing.
 func TestProviderServerSchema(t *testing.T) {
 	ctx := context.Background()
 	factory, err := ProviderServer(ctx)
