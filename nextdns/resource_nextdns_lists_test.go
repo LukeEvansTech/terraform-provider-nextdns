@@ -3,6 +3,7 @@ package nextdns
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -169,4 +170,23 @@ func TestRewrite_UpdateIsIncremental(t *testing.T) {
 			},
 		},
 	})
+}
+
+// SDKv2 declared the domain and rewrite blocks Required (min_items 1 in the
+// schema); the framework enforces the same with a validator.
+func TestLists_BlockIsRequired(t *testing.T) {
+	f := newFakeAPI(t)
+	for _, cfg := range []string{
+		`resource "nextdns_allowlist" "this" { profile_id = "abc123" }`,
+		`resource "nextdns_denylist" "this" { profile_id = "abc123" }`,
+		`resource "nextdns_rewrite" "this" { profile_id = "abc123" }`,
+	} {
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV5ProviderFactories: protoV5ProviderFactories(),
+			Steps: []resource.TestStep{{
+				Config:      providerBlock(f) + cfg,
+				ExpectError: regexp.MustCompile(`must have a configuration value`),
+			}},
+		})
+	}
 }
