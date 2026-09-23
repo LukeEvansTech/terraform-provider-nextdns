@@ -125,10 +125,15 @@ func TestParentalControl_ScheduleUpdateAndValidation(t *testing.T) {
 					return nil
 				},
 			},
-			{
-				Config:      scheduleConfig(f, "25:00:00"),
-				ExpectError: regexp.MustCompile(`Must be in HH:MM:00 format`),
-			},
 		},
+	})
+
+	// Separate case: the harness destroys with the last step's config.
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{{
+			Config:      scheduleConfig(f, "25:00:00"),
+			ExpectError: regexp.MustCompile(`Must be in HH:MM:00 format`),
+		}},
 	})
 }
