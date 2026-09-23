@@ -63,7 +63,7 @@ resource "nextdns_parental_control" "this" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 
 <a id="nestedblock--category"></a>
 ### Nested Schema for `category`
