@@ -134,7 +134,7 @@ resource "nextdns_settings" "acc" {
 	}
 
 	resource.Test(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: config(true, false, true),

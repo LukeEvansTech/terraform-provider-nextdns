@@ -2,6 +2,7 @@ package nextdns
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -14,9 +15,11 @@ import (
 // of the API the provider uses. It stores raw JSON per (profile, sub-path),
 // applies PATCH as a shallow merge and PUT as a replace, composes parent
 // objects from their sub-paths on GET (settings gets logs/blockPage/
-// performance, security gets tlds, parentalControl gets services/categories)
-// and can hide keys from GET responses to simulate a feature the API stops
-// returning. Every request is recorded for assertions.
+// performance, security gets tlds, parentalControl gets services/categories,
+// privacy gets blocklists/natives) and can hide keys from GET responses to
+// simulate a feature the API stops returning. Profiles are created with
+// POST /profiles and rewrites are POSTed and DELETEd by id, as the real API
+// does. Every request is recorded for assertions.
 type fakeAPI struct {
 	t      *testing.T
 	mu     sync.Mutex
@@ -24,6 +27,7 @@ type fakeAPI struct {
 	lists  map[string][]any          // "<profile>/<path>" -> list
 	hidden map[string]bool           // "<profile>/<path>/<key>" -> hidden from GET
 	reqs   []recordedRequest
+	nextID int
 	Server *httptest.Server
 }
 
@@ -39,6 +43,7 @@ var composed = map[string]map[string]string{
 	"settings":        {"logs": "settings/logs", "blockPage": "settings/blockPage", "performance": "settings/performance"},
 	"security":        {"tlds": "security/tlds"},
 	"parentalControl": {"services": "parentalControl/services", "categories": "parentalControl/categories"},
+	"privacy":         {"blocklists": "privacy/blocklists", "natives": "privacy/natives"},
 }
 
 func newFakeAPI(t *testing.T) *fakeAPI {
@@ -119,16 +124,6 @@ func (f *fakeAPI) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// /profiles/<id>/<path...>
-	parts := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/profiles/"), "/", 2)
-	if len(parts) != 2 {
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write([]byte(`{"errors":[{"code":"notFound"}]}`))
-		return
-	}
-	profile, path := parts[0], parts[1]
-	key := profile + "/" + path
-
 	var body map[string]any
 	var list []any
 	if r.Method != http.MethodGet {
@@ -142,6 +137,27 @@ func (f *fakeAPI) handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	f.reqs = append(f.reqs, recordedRequest{Method: r.Method, Path: r.URL.Path, Body: body})
+
+	if r.URL.Path == "/profiles" && r.Method == http.MethodPost {
+		f.nextID++
+		id := fmt.Sprintf("fake%02d", f.nextID)
+		f.store[id+"/"] = map[string]any{"name": body["name"]}
+		writeData(w, map[string]any{"id": id})
+		return
+	}
+
+	// /profiles/<id>[/<path...>]
+	parts := strings.SplitN(strings.TrimPrefix(r.URL.Path, "/profiles/"), "/", 2)
+	if len(parts) == 1 {
+		f.handleProfile(w, r.Method, parts[0], body)
+		return
+	}
+	profile, path := parts[0], parts[1]
+	key := profile + "/" + path
+
+	if f.handleRewrites(w, r.Method, profile, path, body) {
+		return
+	}
 
 	switch r.Method {
 	case http.MethodGet:
@@ -187,4 +203,69 @@ func (f *fakeAPI) handle(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
+}
+
+// handleProfile serves GET/PATCH/DELETE on /profiles/<id> for profiles
+// created through POST /profiles. The caller holds f.mu.
+func (f *fakeAPI) handleProfile(w http.ResponseWriter, method, id string, body map[string]any) {
+	obj, ok := f.store[id+"/"]
+	if !ok {
+		notFound(w)
+		return
+	}
+	switch method {
+	case http.MethodGet:
+		writeData(w, obj)
+	case http.MethodPatch:
+		for k, v := range body {
+			obj[k] = v
+		}
+		w.WriteHeader(http.StatusNoContent)
+	case http.MethodDelete:
+		delete(f.store, id+"/")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+// handleRewrites serves POST .../rewrites and DELETE .../rewrites/<id>,
+// which the real API addresses by rewrite id rather than by replacing the
+// list. GET falls through to the generic list handling. The caller holds
+// f.mu. It reports whether it wrote a response.
+func (f *fakeAPI) handleRewrites(w http.ResponseWriter, method, profile, path string, body map[string]any) bool {
+	key := profile + "/rewrites"
+	switch {
+	case path == "rewrites" && method == http.MethodPost:
+		f.nextID++
+		body["id"] = fmt.Sprintf("rw%02d", f.nextID)
+		body["type"] = "A"
+		f.lists[key] = append(f.lists[key], body)
+		writeData(w, body)
+		return true
+	case strings.HasPrefix(path, "rewrites/") && method == http.MethodDelete:
+		id := strings.TrimPrefix(path, "rewrites/")
+		kept := []any{}
+		for _, e := range f.lists[key] {
+			if m, ok := e.(map[string]any); ok && m["id"] == id {
+				continue
+			}
+			kept = append(kept, e)
+		}
+		f.lists[key] = kept
+		w.WriteHeader(http.StatusNoContent)
+		return true
+	}
+	return false
+}
+
+func writeData(w http.ResponseWriter, v any) {
+	out, _ := json.Marshal(map[string]any{"data": v})
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write(out)
+}
+
+func notFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	_, _ = w.Write([]byte(`{"errors":[{"code":"notFound"}]}`))
 }

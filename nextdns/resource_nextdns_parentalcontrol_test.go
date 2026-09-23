@@ -37,7 +37,7 @@ resource "nextdns_parental_control" "this" {
 }
 `
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: config,
