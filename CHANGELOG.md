@@ -2,13 +2,10 @@
 
 ## Unreleased
 
-### Changed
+Plugin Framework conversion, in progress.
 
-- The provider is served through `terraform-plugin-mux`, with the Plugin Framework and SDKv2 side by side while resources move across one at a time. `nextdns_profile` is the first on the framework. Its schema is unchanged apart from `id`, which is now computed only.
-
-### Added
-
-- Migration tests: each resource is applied with v0.3.0, installed from the Pages mirror, and must then plan no changes under the provider being built.
+- Changed: the provider is served through `terraform-plugin-mux`, with the Plugin Framework and SDKv2 side by side while resources move across one at a time. `nextdns_profile` is the first on the framework. Its schema is unchanged apart from `id`, which is now computed only.
+- Added: migration tests: each resource is applied with v0.3.0, installed from the Pages mirror, and must then plan no changes under the provider being built.
 
 ## v0.3.0 (2026-09-23)
 
