@@ -26,6 +26,7 @@ resource "nextdns_security" "this" {
   dns_payload_delivery       = false
   decentralized_web_gateways = false
   high_risk_tlds             = false
+  newly_active_domains       = false
 
   # fast_flux_networks and dns_data_exfiltration are returned by the API but
   # hidden in the dashboard for some profiles; omit them until a write has

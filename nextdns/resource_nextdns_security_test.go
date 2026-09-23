@@ -16,7 +16,7 @@ const securityLive = `{
   "freeHostingDomains": false, "tunnelingEndpoints": false, "dataDropServices": false,
   "residentialHosting": false, "untrustedCertificates": false, "fastFluxNetworks": false,
   "dnsDataExfiltration": false, "dnsPayloadDelivery": false, "decentralizedWebGateways": false,
-  "highRiskTlds": false
+  "highRiskTlds": false, "newlyActiveDomains": false
 }`
 
 var extendedSecurityAttrs = map[string]string{
@@ -30,6 +30,7 @@ var extendedSecurityAttrs = map[string]string{
 	"dns_payload_delivery":       "dnsPayloadDelivery",
 	"decentralized_web_gateways": "decentralizedWebGateways",
 	"high_risk_tlds":             "highRiskTlds",
+	"newly_active_domains":       "newlyActiveDomains",
 }
 
 func securityConfig(f *fakeAPI, extra string) string {

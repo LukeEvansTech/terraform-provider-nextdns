@@ -39,6 +39,7 @@ type Security struct {
 	DNSPayloadDelivery       *bool `json:"dnsPayloadDelivery,omitempty"`
 	DecentralizedWebGateways *bool `json:"decentralizedWebGateways,omitempty"`
 	HighRiskTlds             *bool `json:"highRiskTlds,omitempty"`
+	NewlyActiveDomains       *bool `json:"newlyActiveDomains,omitempty"`
 }
 
 // UpdateSecurityRequest encapsulates the request for updating security settings.

@@ -4,7 +4,7 @@
 
 This is the `lukeevanstech/nextdns` fork of [`amalucelli/terraform-provider-nextdns`](https://github.com/amalucelli/terraform-provider-nextdns), which has not had a release since v0.2.0 (February 2024). The fork:
 
-- adds the eleven profile switches the API exposes but upstream cannot manage: ten security switches (`free_hosting_domains`, `tunneling_endpoints`, `data_drop_services`, `residential_hosting`, `untrusted_certificates`, `fast_flux_networks`, `dns_data_exfiltration`, `dns_payload_delivery`, `decentralized_web_gateways`, `high_risk_tlds`) and `bypass_age_verification` (`settings.bav`);
+- adds the twelve profile switches the API exposes but upstream cannot manage: eleven security switches (`free_hosting_domains`, `tunneling_endpoints`, `data_drop_services`, `residential_hosting`, `untrusted_certificates`, `fast_flux_networks`, `dns_data_exfiltration`, `dns_payload_delivery`, `decentralized_web_gateways`, `high_risk_tlds`, `newly_active_domains`) and `bypass_age_verification` (`settings.bav`);
 - keeps every upstream resource, attribute and identifier unchanged, so an existing state moves across with `state replace-provider` and a no-change plan;
 - folds the [`nextdns-go`](https://github.com/amalucelli/nextdns-go) client in as `internal/nextdns` (upstream last released March 2023);
 - ports the parental-control fix from [`cozy-corner`](https://github.com/cozy-corner/terraform-provider-nextdns) (services and categories are no longer resent in the profile PATCH; a recreation block with only a timezone no longer panics);
@@ -46,9 +46,9 @@ provider "nextdns" {
 }
 ```
 
-## The eleven new attributes
+## The twelve new attributes
 
-All eleven are `Optional + Computed` booleans with the same three-way behaviour:
+All twelve are `Optional + Computed` booleans with the same three-way behaviour:
 
 | Written in configuration | What the provider does                                                  |
 | ------------------------ | ----------------------------------------------------------------------- |
