@@ -30,7 +30,6 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"nextdns_parental_control": resourceNextDNSParentalControl(),
-			"nextdns_settings":         resourceNextDNSSettings(),
 		},
 		ConfigureContextFunc: configure,
 	}

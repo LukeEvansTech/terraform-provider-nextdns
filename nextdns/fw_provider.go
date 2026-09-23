@@ -93,6 +93,7 @@ func (p *frameworkProvider) Resources(_ context.Context) []func() resource.Resou
 		newProfileResource,
 		newRewriteResource,
 		newSecurityResource,
+		newSettingsResource,
 	}
 }
 
