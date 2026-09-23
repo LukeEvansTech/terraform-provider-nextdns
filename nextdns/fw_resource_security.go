@@ -51,16 +51,15 @@ type securityModel struct {
 	HighRiskTlds             types.Bool `tfsdk:"high_risk_tlds"`
 }
 
-// extended pairs each extended switch in the model with its API field, so
-// the tri-state handling is written once.
-func (m *securityModel) extended(s *nextdns.Security) []struct {
+// securitySwitch pairs an extended switch in the model with its API field,
+// so the tri-state handling is written once.
+type securitySwitch struct {
 	attr *types.Bool
 	api  **bool
-} {
-	return []struct {
-		attr *types.Bool
-		api  **bool
-	}{
+}
+
+func (m *securityModel) extended(s *nextdns.Security) []securitySwitch {
+	return []securitySwitch{
 		{&m.FreeHostingDomains, &s.FreeHostingDomains},
 		{&m.TunnelingEndpoints, &s.TunnelingEndpoints},
 		{&m.DataDropServices, &s.DataDropServices},
@@ -293,10 +292,7 @@ func boolPointer(v types.Bool) *bool {
 	return &b
 }
 
-func anyUnknown(switches []struct {
-	attr *types.Bool
-	api  **bool
-}) bool {
+func anyUnknown(switches []securitySwitch) bool {
 	for _, sw := range switches {
 		if sw.attr.IsUnknown() {
 			return true
