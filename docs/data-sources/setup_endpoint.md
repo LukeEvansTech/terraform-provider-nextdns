@@ -34,6 +34,6 @@ output "doh" {
 - `dnscrypt` (String) The DNS Stamps from the profile.
 - `doh` (String) The DNS over HTTPS address the profile is reachable at.
 - `dot` (String) The DNS over TLS address the profile is reachable at.
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 - `ipv4` (List of String) The IPv4 addresses the profile is reachable at.
 - `ipv6` (List of String) The IPv6 addresses the profile is reachable at.
