@@ -105,6 +105,15 @@ resource "nextdns_security" "this" {
   parking                   = true
   csam                      = false
 
+  free_hosting_domains       = false
+  tunneling_endpoints        = false
+  data_drop_services         = false
+  residential_hosting        = false
+  untrusted_certificates     = false
+  dns_payload_delivery       = false
+  decentralized_web_gateways = false
+  high_risk_tlds             = false
+
   tlds = toset([
     "pizza",
     "beer",
@@ -165,7 +174,8 @@ resource "nextdns_settings" "this" {
     cname_flattening = true
   }
 
-  web3 = true
+  web3                    = true
+  bypass_age_verification = true
 }
 
 resource "nextdns_rewrite" "this" {
@@ -191,30 +201,32 @@ data "nextdns_setup_linkedip" "this" {
 }
 
 terraform {
+  required_version = ">= 1.6.0"
+
   required_providers {
     nextdns = {
-      source  = "amalucelli/nextdns"
-      version = "0.1.0"
+      source  = "lukeevanstech/nextdns"
+      version = "~> 0.3"
     }
   }
 }
 
 output "doh" {
   description = "The DNS over HTTPS address the profile is reachable at"
-  value = data.nextdns_setup_endpoint.this.dot
+  value       = data.nextdns_setup_endpoint.this.dot
 }
 
 output "dot" {
   description = "The DNS over TLS address the profile is reachable at"
-  value = data.nextdns_setup_endpoint.this.doh
+  value       = data.nextdns_setup_endpoint.this.doh
 }
 
 output "ipv6" {
   description = "The IPv6 address the profile is reachable at"
-  value = data.nextdns_setup_endpoint.this.ipv6
+  value       = data.nextdns_setup_endpoint.this.ipv6
 }
 
 output "servers" {
   description = "The DNS servers available for the profile"
-  value = data.nextdns_setup_linkedip.this.servers
+  value       = data.nextdns_setup_linkedip.this.servers
 }

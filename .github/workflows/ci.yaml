@@ -1,0 +1,150 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  go-test:
+    name: Go Test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+      - name: Check go.mod tidiness
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+      - name: Tests
+        run: mise run test
+
+  go-lint:
+    name: Go Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+      - name: golangci-lint
+        run: mise run lint
+
+  go-vulncheck:
+    name: Go Vulncheck
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+      - name: govulncheck
+        run: mise run vulncheck
+
+  docs:
+    name: Docs Current
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+      - name: Regenerate and diff docs/
+        run: mise run docs-check
+
+  snapshot:
+    name: Snapshot Build + Mirror Install
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+      - name: GoReleaser snapshot
+        run: goreleaser release --snapshot --clean
+      - name: Render mirror and install from it
+        # Proves the archives GoReleaser produced are what the mirror protocol
+        # will serve: render a filesystem_mirror from dist/ and tofu init a
+        # module that requires lukeevanstech/nextdns from it.
+        run: |
+          sums=(dist/*_SHA256SUMS)
+          version="${sums[0]##*-nextdns_}"
+          version="${version%_SHA256SUMS}"
+          go run ./cmd/mirror-index -dist dist -version "$version" -out site -copy-archives
+          mkdir -p check
+          cat > check/.tofurc <<CFG
+          provider_installation {
+            filesystem_mirror {
+              path    = "$PWD/site"
+              include = ["lukeevanstech/nextdns"]
+            }
+            direct {
+              exclude = ["lukeevanstech/nextdns"]
+            }
+          }
+          CFG
+          # A snapshot version is a prerelease, which tofu only selects under an
+          # exact constraint.
+          cat > check/main.tf <<TF
+          terraform {
+            required_providers {
+              nextdns = {
+                source  = "lukeevanstech/nextdns"
+                version = "$version"
+              }
+            }
+          }
+          TF
+          cd check
+          TF_CLI_CONFIG_FILE="$PWD/.tofurc" tofu init -no-color
+          TF_CLI_CONFIG_FILE="$PWD/.tofurc" tofu providers schema -json \
+            | jq -e '.provider_schemas["registry.opentofu.org/lukeevanstech/nextdns"].resource_schemas.nextdns_security.block.attributes | has("high_risk_tlds")'
+
+  workflow-lint:
+    name: Workflow Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+      - name: actionlint + zizmor
+        run: mise run lint-workflows

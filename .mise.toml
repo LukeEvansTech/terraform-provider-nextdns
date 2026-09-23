@@ -1,0 +1,57 @@
+[settings]
+lockfile = true
+
+[tools]
+actionlint = "1.7.12"
+go = "1.26.8"
+"go:golang.org/x/vuln/cmd/govulncheck" = "v1.8.0"
+golangci-lint = "2.13.2"
+goreleaser = "2.18.2"
+opentofu = "1.12.6"
+zizmor = "1.30.1"
+
+[env]
+# terraform-plugin-testing is pointed at the tofu on PATH by TestMain; this
+# keeps the provider address it generates on the OpenTofu registry host.
+TF_ACC_PROVIDER_HOST = "registry.opentofu.org"
+
+[tasks.test]
+description = "Stub-driven provider suite plus client and tool tests (race detector on)"
+run = "go test -race -count=1 ./..."
+
+[tasks.test-live]
+description = "Opt-in live acceptance test: creates and destroys a throwaway profile (needs NEXTDNS_API_KEY)"
+run = "TF_ACC=1 go test -count=1 -timeout 15m -v ./nextdns/ -run TestAccLive"
+
+[tasks.lint]
+description = "golangci-lint"
+run = "golangci-lint run ./..."
+
+[tasks.vulncheck]
+description = "govulncheck"
+run = "govulncheck ./..."
+
+[tasks.docs]
+description = "Regenerate docs/ from the provider schema"
+run = "go generate ./..."
+
+[tasks.docs-check]
+description = "Fail if docs/ is stale"
+run = ["go generate ./...", "git diff --exit-code docs/"]
+
+[tasks.lint-workflows]
+description = "actionlint + zizmor on the workflows"
+run = ["actionlint", "zizmor --min-severity medium .github/workflows"]
+
+[tasks.snapshot]
+description = "Multi-platform snapshot build into dist/ (no release)"
+run = "goreleaser release --snapshot --clean"
+
+[tasks.mirror-local]
+description = "Render dist/ as a filesystem_mirror under site/ (run snapshot first)"
+run = """
+sums=(dist/*_SHA256SUMS)
+version="${sums[0]##*-nextdns_}"
+version="${version%_SHA256SUMS}"
+go run ./cmd/mirror-index -dist dist -version "$version" -out site -copy-archives
+"""

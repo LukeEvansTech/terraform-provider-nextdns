@@ -79,5 +79,29 @@ func resourceNextDNSSecuritySchema() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+
+		// Extended switches (v0.3.0). Optional + Computed: omitting one keeps
+		// the live value and records it in state; an explicit true/false is
+		// written; one the API stops returning keeps its last known value.
+		"free_hosting_domains":       extendedSecuritySwitch("Block domains on free hosting providers (API: `freeHostingDomains`)."),
+		"tunneling_endpoints":        extendedSecuritySwitch("Block tunneling and DNS-over-anything endpoints (API: `tunnelingEndpoints`)."),
+		"data_drop_services":         extendedSecuritySwitch("Block data drop / paste services (API: `dataDropServices`)."),
+		"residential_hosting":        extendedSecuritySwitch("Block domains served from residential IP space (API: `residentialHosting`)."),
+		"untrusted_certificates":     extendedSecuritySwitch("Block domains presenting untrusted certificates (API: `untrustedCertificates`)."),
+		"fast_flux_networks":         extendedSecuritySwitch("Block fast-flux networks (API: `fastFluxNetworks`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified."),
+		"dns_data_exfiltration":      extendedSecuritySwitch("Block DNS data exfiltration (API: `dnsDataExfiltration`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified."),
+		"dns_payload_delivery":       extendedSecuritySwitch("Block DNS payload delivery (API: `dnsPayloadDelivery`)."),
+		"decentralized_web_gateways": extendedSecuritySwitch("Block decentralized web (IPFS, ENS) gateways (API: `decentralizedWebGateways`)."),
+		"high_risk_tlds":             extendedSecuritySwitch("Block high-risk TLDs (API: `highRiskTlds`)."),
+	}
+}
+
+// extendedSecuritySwitch is the shared schema for the v0.3.0 security switches.
+func extendedSecuritySwitch(description string) *schema.Schema {
+	return &schema.Schema{
+		Description: description,
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Computed:    true,
 	}
 }

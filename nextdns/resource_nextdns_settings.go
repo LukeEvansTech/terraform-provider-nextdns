@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/amalucelli/nextdns-go/nextdns"
+	"github.com/LukeEvansTech/terraform-provider-nextdns/internal/nextdns"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -124,6 +124,10 @@ func resourceNextDNSSettingsRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("performance", []map[string]interface{}{performance})
 
 	d.Set("web3", settings.Web3)
+
+	if err := setBoolIfPresent(d, "bypass_age_verification", settings.Bav); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting bypass_age_verification: %w", err))
+	}
 
 	d.SetId(profileID)
 
@@ -274,6 +278,7 @@ func buildSettings(d *schema.ResourceData) (*nextdns.Settings, error) {
 		BlockPage:   blockPage,
 		Performance: performance,
 		Web3:        d.Get("web3").(bool),
+		Bav:         optionalBool(d, "bypass_age_verification"),
 	}
 
 	return Settings, nil

@@ -1,0 +1,116 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Release
+
+# A v* tag builds the multi-platform archives, publishes them as a GitHub
+# Release together with this version's mirror document, then rebuilds the
+# GitHub Pages network mirror from the mirror documents of every release.
+# workflow_dispatch re-renders the mirror without cutting a release.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: GoReleaser
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+          cache: false
+      - name: GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: goreleaser release --clean
+      - name: Attach this version's mirror document to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          version="${TAG#v}"
+          go run ./cmd/mirror-index \
+            -dist dist -version "$version" -out site \
+            -release-url "https://github.com/${REPO}/releases/download/${TAG}" \
+            -hosts registry.opentofu.org
+          cp "site/registry.opentofu.org/lukeevanstech/nextdns/${version}.json" \
+            "terraform-provider-nextdns_${version}_mirror.json"
+          gh release upload "$TAG" "terraform-provider-nextdns_${version}_mirror.json" --clobber
+
+  pages:
+    name: Publish Mirror to Pages
+    needs: [release]
+    # Also run on workflow_dispatch, where `release` is skipped.
+    if: always() && (needs.release.result == 'success' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Mise
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: --locked
+          cache: false
+      - name: Collect every release's mirror document
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p versions
+          gh api --paginate "repos/${REPO}/releases" \
+            --jq '.[] | select(.draft == false and .prerelease == false) | .tag_name' \
+            | while read -r tag; do
+                version="${tag#v}"
+                if gh release download "$tag" --repo "$REPO" \
+                  --pattern "terraform-provider-nextdns_${version}_mirror.json" \
+                  --output "versions/${version}.json" 2>/dev/null; then
+                  echo "collected ${version}"
+                else
+                  echo "no mirror document on ${tag}; skipped"
+                fi
+              done
+          ls -l versions
+      - name: Render the mirror
+        run: |
+          go run ./cmd/mirror-index -assemble versions -out site
+          find site -type f | sort
+          # A bare index page so the Pages URL is not a 404 when opened by a person.
+          cat > site/index.html <<'HTML'
+          <!doctype html><title>lukeevanstech/nextdns provider mirror</title>
+          <p>OpenTofu/Terraform provider network mirror for <code>lukeevanstech/nextdns</code>.
+          See <a href="https://github.com/LukeEvansTech/terraform-provider-nextdns">the repository</a> for installation.</p>
+          HTML
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Upload site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

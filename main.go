@@ -1,7 +1,10 @@
+// Regenerate docs/ from the provider schema (see tools/gen-docs.sh).
+//go:generate ./tools/gen-docs.sh
+
 package main
 
 import (
-	"github.com/amalucelli/terraform-provider-nextdns/nextdns"
+	"github.com/LukeEvansTech/terraform-provider-nextdns/nextdns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
