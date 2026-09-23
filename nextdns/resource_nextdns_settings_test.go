@@ -49,7 +49,7 @@ func TestSettings_OmittedBavPreservesLive(t *testing.T) {
 	seedSettings(f, `, "bav": true`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: settingsConfig(f, ""),
@@ -88,7 +88,7 @@ func TestSettings_ExplicitBavIsWrittenBothWays(t *testing.T) {
 	seedSettings(f, `, "bav": true`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: settingsConfig(f, `  bypass_age_verification = false`),
@@ -131,7 +131,7 @@ func TestSettings_BavAbsentFromResponseKeepsState(t *testing.T) {
 	seedSettings(f, `, "bav": true`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: settingsConfig(f, `  bypass_age_verification = true`),
@@ -154,7 +154,7 @@ func TestSettings_ImportReadsBav(t *testing.T) {
 	seedSettings(f, `, "bav": true`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config:             settingsConfig(f, ""),

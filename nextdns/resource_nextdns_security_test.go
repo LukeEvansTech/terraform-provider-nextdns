@@ -82,7 +82,7 @@ func TestSecurity_OmittedExtendedAttributesPreserveLive(t *testing.T) {
 	})
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: securityConfig(f, ""),
@@ -106,7 +106,7 @@ func TestSecurity_ExplicitFalseIsWritten(t *testing.T) {
 	f.seed("abc123", "security/tlds", `[]`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: securityConfig(f, `  high_risk_tlds = false
@@ -145,7 +145,7 @@ func TestSecurity_ExplicitTrueRoundTrip(t *testing.T) {
 	f.seed("abc123", "security/tlds", `[]`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: securityConfig(f, `  tunneling_endpoints = true`),
@@ -181,7 +181,7 @@ func TestSecurity_AbsentFromResponseKeepsStateWithoutDrift(t *testing.T) {
 	f.seed("abc123", "security/tlds", `[]`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				// State holds true for both so that a wrong "write false when
@@ -229,7 +229,7 @@ func TestSecurity_ImportReadsExtendedAttributes(t *testing.T) {
 	f.seed("abc123", "security/tlds", `[{"id":"autos"},{"id":"bid"}]`)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories(),
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config:             securityConfig(f, ""),

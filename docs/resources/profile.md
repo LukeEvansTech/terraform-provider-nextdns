@@ -27,7 +27,7 @@ resource "nextdns_profile" "this" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The profile identifier; the same value as `profile_id`.
 - `profile_id` (String) The profile identifier to target the resource.
 
 ## Import
