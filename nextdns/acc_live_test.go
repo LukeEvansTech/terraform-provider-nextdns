@@ -20,6 +20,11 @@ import (
 // the raw API, and destroys the profile at the end. It never touches any
 // pre-existing profile.
 //
+// fast_flux_networks and dns_data_exfiltration are hidden in the dashboard
+// for some profiles, so a write to them is the thing in doubt. They are
+// flipped true, read back, then flipped false and read back again: writing
+// false alone would pass whether or not the API honours the field.
+//
 //	TF_ACC=1 NEXTDNS_API_KEY=... go test ./nextdns/ -run TestAccLive -v
 func TestAccLive_ExtendedAttributesRoundTrip(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
@@ -31,12 +36,12 @@ func TestAccLive_ExtendedAttributesRoundTrip(t *testing.T) {
 	}
 
 	name := acctest.RandomWithPrefix("tf-acc")
-	config := func(bav bool, highRisk bool) string {
+	config := func(bav, highRisk, hidden bool) string {
 		return fmt.Sprintf(`
 provider "nextdns" {}
 
 resource "nextdns_profile" "acc" {
-  name = %q
+  name = %[1]q
 }
 
 resource "nextdns_security" "acc" {
@@ -60,17 +65,17 @@ resource "nextdns_security" "acc" {
   data_drop_services         = false
   residential_hosting        = false
   untrusted_certificates     = false
-  fast_flux_networks         = false
-  dns_data_exfiltration      = false
+  fast_flux_networks         = %[4]t
+  dns_data_exfiltration      = %[4]t
   dns_payload_delivery       = false
   decentralized_web_gateways = false
-  high_risk_tlds             = %t
+  high_risk_tlds             = %[2]t
 }
 
 resource "nextdns_settings" "acc" {
   profile_id              = nextdns_profile.acc.id
   web3                    = true
-  bypass_age_verification = %t
+  bypass_age_verification = %[3]t
 
   logs {
     enabled   = true
@@ -90,13 +95,13 @@ resource "nextdns_settings" "acc" {
     cname_flattening = false
   }
 }
-`, name, highRisk, bav)
+`, name, highRisk, bav, hidden)
 	}
 
 	// readBack fetches the live values through the raw client, independently
 	// of the provider's own state, so the check is not the writer testifying
 	// for itself.
-	readBack := func(wantHighRisk, wantBav bool) resource.TestCheckFunc {
+	readBack := func(wantHighRisk, wantBav, wantHidden bool) resource.TestCheckFunc {
 		return func(s *terraformState) error {
 			rs, ok := s.RootModule().Resources["nextdns_profile.acc"]
 			if !ok {
@@ -114,18 +119,8 @@ resource "nextdns_settings" "acc" {
 			if sec.HighRiskTlds == nil || *sec.HighRiskTlds != wantHighRisk {
 				return fmt.Errorf("live highRiskTlds = %v, want %t", sec.HighRiskTlds, wantHighRisk)
 			}
-			for k, v := range map[string]*bool{
-				"freeHostingDomains": sec.FreeHostingDomains, "tunnelingEndpoints": sec.TunnelingEndpoints,
-				"dataDropServices": sec.DataDropServices, "residentialHosting": sec.ResidentialHosting,
-				"untrustedCertificates": sec.UntrustedCertificates, "fastFluxNetworks": sec.FastFluxNetworks,
-				"dnsDataExfiltration": sec.DNSDataExfiltration, "dnsPayloadDelivery": sec.DNSPayloadDelivery,
-				"decentralizedWebGateways": sec.DecentralizedWebGateways,
-			} {
-				if v == nil {
-					t.Logf("live API did not return %s for the throwaway profile", k)
-				} else if *v {
-					return fmt.Errorf("live %s = true, want false", k)
-				}
+			if err := checkLiveSwitches(t, sec, wantHidden); err != nil {
+				return err
 			}
 			set, err := client.Settings.Get(ctx, &nextdns.GetSettingsRequest{ProfileID: rs.Primary.ID})
 			if err != nil {
@@ -142,25 +137,55 @@ resource "nextdns_settings" "acc" {
 		ProviderFactories: providerFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: config(true, false),
-				Check:  readBack(false, true),
+				Config: config(true, false, true),
+				Check:  readBack(false, true, true),
 			},
 			{
-				Config: config(false, true),
+				Config: config(false, true, false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction("nextdns_security.acc", plancheck.ResourceActionUpdate),
 						plancheck.ExpectResourceAction("nextdns_settings.acc", plancheck.ResourceActionUpdate),
 					},
 				},
-				Check: readBack(true, false),
+				Check: readBack(true, false, false),
 			},
 			{
-				Config: config(false, true),
+				Config: config(false, true, false),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
 				},
 			},
 		},
 	})
+}
+
+// checkLiveSwitches asserts the live security switches on the throwaway
+// profile: the two dashboard-hidden ones must be present and equal
+// wantHidden, and the other extended switches must not be true.
+func checkLiveSwitches(t *testing.T, sec *nextdns.Security, wantHidden bool) error {
+	t.Helper()
+	for k, v := range map[string]*bool{
+		"fastFluxNetworks": sec.FastFluxNetworks, "dnsDataExfiltration": sec.DNSDataExfiltration,
+	} {
+		if v == nil {
+			return fmt.Errorf("live API did not return %s", k)
+		}
+		if *v != wantHidden {
+			return fmt.Errorf("live %s = %t, want %t", k, *v, wantHidden)
+		}
+	}
+	for k, v := range map[string]*bool{
+		"freeHostingDomains": sec.FreeHostingDomains, "tunnelingEndpoints": sec.TunnelingEndpoints,
+		"dataDropServices": sec.DataDropServices, "residentialHosting": sec.ResidentialHosting,
+		"untrustedCertificates": sec.UntrustedCertificates, "dnsPayloadDelivery": sec.DNSPayloadDelivery,
+		"decentralizedWebGateways": sec.DecentralizedWebGateways,
+	} {
+		if v == nil {
+			t.Logf("live API did not return %s for the throwaway profile", k)
+		} else if *v {
+			return fmt.Errorf("live %s = true, want false", k)
+		}
+	}
+	return nil
 }
