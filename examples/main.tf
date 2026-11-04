@@ -126,8 +126,9 @@ resource "nextdns_security" "this" {
 resource "nextdns_privacy" "this" {
   profile_id = nextdns_profile.this.id
 
-  disguised_trackers = true
-  allow_affiliate    = false
+  disguised_trackers  = true
+  allow_affiliate     = false
+  rotating_ad_domains = false
 
   blocklists = toset([
     "nextdns-recommended",

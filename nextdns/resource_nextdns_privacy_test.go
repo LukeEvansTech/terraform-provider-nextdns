@@ -21,7 +21,7 @@ resource "nextdns_privacy" "this" {
 }
 
 func seedPrivacy(f *fakeAPI) {
-	f.seed("abc123", "privacy", `{"disguisedTrackers": false, "allowAffiliate": true}`)
+	f.seed("abc123", "privacy", `{"disguisedTrackers": false, "allowAffiliate": true, "rotatingAdDomains": true}`)
 	f.seed("abc123", "privacy/blocklists", `[]`)
 	f.seed("abc123", "privacy/natives", `[]`)
 }
@@ -67,6 +67,134 @@ func TestPrivacy_ListForms(t *testing.T) {
 				},
 			},
 			{Config: privacyConfig(f, `  natives = ["apple", "windows"]`), ConfigPlanChecks: empty},
+		},
+	})
+}
+
+func TestPrivacy_OmittedRotatingAdDomainsPreservesLive(t *testing.T) {
+	f := newFakeAPI(t)
+	seedPrivacy(f)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: privacyConfig(f, ""),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("nextdns_privacy.this", "rotating_ad_domains", "true"),
+					func(_ *terraformState) error {
+						reqs := f.requests("PATCH", "/privacy")
+						if len(reqs) == 0 {
+							return fmt.Errorf("expected a PATCH /privacy")
+						}
+						for _, r := range reqs {
+							if _, present := r.Body["rotatingAdDomains"]; present {
+								return fmt.Errorf("PATCH /privacy sent rotatingAdDomains although omitted: %v", r.Body)
+							}
+						}
+						if v, _ := f.get("abc123", "privacy", "rotatingAdDomains"); v != true {
+							return fmt.Errorf("API rotatingAdDomains changed to %v", v)
+						}
+						return nil
+					},
+				),
+			},
+			{
+				Config: privacyConfig(f, ""),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
+			},
+		},
+	})
+}
+
+func TestPrivacy_ExplicitRotatingAdDomainsIsWrittenBothWays(t *testing.T) {
+	f := newFakeAPI(t)
+	seedPrivacy(f)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: privacyConfig(f, `  rotating_ad_domains = false`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("nextdns_privacy.this", "rotating_ad_domains", "false"),
+					func(_ *terraformState) error {
+						if v, _ := f.get("abc123", "privacy", "rotatingAdDomains"); v != false {
+							return fmt.Errorf("API rotatingAdDomains = %v, want false", v)
+						}
+						return nil
+					},
+				),
+			},
+			{
+				Config: privacyConfig(f, `  rotating_ad_domains = true`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction("nextdns_privacy.this", plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: func(_ *terraformState) error {
+					if v, _ := f.get("abc123", "privacy", "rotatingAdDomains"); v != true {
+						return fmt.Errorf("API rotatingAdDomains = %v, want true", v)
+					}
+					return nil
+				},
+			},
+			{
+				Config: privacyConfig(f, `  rotating_ad_domains = true`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
+			},
+		},
+	})
+}
+
+func TestPrivacy_RotatingAdDomainsAbsentFromResponseKeepsState(t *testing.T) {
+	f := newFakeAPI(t)
+	seedPrivacy(f)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: privacyConfig(f, `  rotating_ad_domains = true`),
+				Check:  resource.TestCheckResourceAttr("nextdns_privacy.this", "rotating_ad_domains", "true"),
+			},
+			{
+				PreConfig: func() { f.hide("abc123", "privacy", "rotatingAdDomains") },
+				Config:    privacyConfig(f, `  rotating_ad_domains = true`),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+				},
+				Check: resource.TestCheckResourceAttr("nextdns_privacy.this", "rotating_ad_domains", "true"),
+			},
+		},
+	})
+}
+
+func TestPrivacy_ImportReadsRotatingAdDomains(t *testing.T) {
+	f := newFakeAPI(t)
+	seedPrivacy(f)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config:             privacyConfig(f, ""),
+				ResourceName:       "nextdns_privacy.this",
+				ImportState:        true,
+				ImportStateId:      "abc123",
+				ImportStatePersist: true,
+				ImportStateCheck: func(states []*instanceState) error {
+					if got := states[0].Attributes["rotating_ad_domains"]; got != "true" {
+						return fmt.Errorf("rotating_ad_domains = %q, want true", got)
+					}
+					return nil
+				},
+			},
 		},
 	})
 }

@@ -207,3 +207,62 @@ func TestSettingsGetBav(t *testing.T) {
 	c.NoErr(err)
 	c.True(s.Bav == nil)
 }
+
+func TestPrivacyUpdateOmitsUnsetRotatingAdDomains(t *testing.T) {
+	c := is.New(t)
+	ts, captured := capturePatch(t)
+	client, err := New(WithBaseURL(ts.URL))
+	c.NoErr(err)
+
+	err = client.Privacy.Update(context.Background(), &UpdatePrivacyRequest{
+		ProfileID: "abc123",
+		Privacy:   &Privacy{DisguisedTrackers: true},
+	})
+	c.NoErr(err)
+	_, ok := (*captured)["disguisedTrackers"]
+	c.True(ok)
+	_, ok = (*captured)["rotatingAdDomains"]
+	c.True(!ok)
+}
+
+func TestPrivacyUpdateSendsExplicitRotatingAdDomains(t *testing.T) {
+	c := is.New(t)
+	ts, captured := capturePatch(t)
+	client, err := New(WithBaseURL(ts.URL))
+	c.NoErr(err)
+
+	for _, want := range []bool{true, false} {
+		err = client.Privacy.Update(context.Background(), &UpdatePrivacyRequest{
+			ProfileID: "abc123",
+			Privacy:   &Privacy{RotatingAdDomains: Bool(want)},
+		})
+		c.NoErr(err)
+		c.Equal((*captured)["rotatingAdDomains"], want)
+	}
+}
+
+func TestPrivacyGetRotatingAdDomains(t *testing.T) {
+	c := is.New(t)
+	bodies := []string{
+		`{"data":{"disguisedTrackers":true,"rotatingAdDomains":true}}`,
+		`{"data":{"disguisedTrackers":true}}`,
+	}
+	i := 0
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(bodies[i]))
+		i++
+	}))
+	t.Cleanup(ts.Close)
+	client, err := New(WithBaseURL(ts.URL))
+	c.NoErr(err)
+
+	p, err := client.Privacy.Get(context.Background(), &GetPrivacyRequest{ProfileID: "abc123"})
+	c.NoErr(err)
+	c.True(p.RotatingAdDomains != nil)
+	c.Equal(*p.RotatingAdDomains, true)
+
+	p, err = client.Privacy.Get(context.Background(), &GetPrivacyRequest{ProfileID: "abc123"})
+	c.NoErr(err)
+	c.True(p.RotatingAdDomains == nil)
+}

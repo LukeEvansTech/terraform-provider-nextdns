@@ -19,6 +19,9 @@ resource "nextdns_privacy" "this" {
   disguised_trackers = false
   allow_affiliate    = true
 
+  # Optional + Computed: omit to keep the live value.
+  rotating_ad_domains = false
+
   blocklists = ["hagezi-multi-pro"]
   natives    = ["windows", "apple", "sonos", "roku"]
 }
@@ -37,6 +40,7 @@ resource "nextdns_privacy" "this" {
 
 - `blocklists` (List of String) Blocklists.
 - `natives` (List of String) Native tracking protection.
+- `rotating_ad_domains` (Boolean) Block rotating ad domains (API: `rotatingAdDomains`). Returned by the API since October 2026.
 
 ### Read-Only
 
