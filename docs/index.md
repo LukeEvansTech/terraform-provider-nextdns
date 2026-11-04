@@ -12,10 +12,10 @@ settings, allowlist, denylist and rewrites.
 
 This is the `lukeevanstech/nextdns` fork of
 [`amalucelli/nextdns`](https://github.com/amalucelli/terraform-provider-nextdns).
-It adds the twelve profile switches the upstream provider cannot manage
-(eleven security switches and `settings.bav`) and keeps the upstream schema
-otherwise unchanged, so an existing state moves across with
-`state replace-provider` and no resource changes.
+It adds the thirteen profile switches the upstream provider cannot manage
+(eleven security switches, `privacy.rotatingAdDomains` and `settings.bav`)
+and keeps the upstream schema otherwise unchanged, so an existing state
+moves across with `state replace-provider` and no resource changes.
 
 ## Installation
 

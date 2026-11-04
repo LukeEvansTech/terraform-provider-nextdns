@@ -15,6 +15,11 @@ type Privacy struct {
 	Natives           []*PrivacyNatives    `json:"natives,omitempty"`
 	DisguisedTrackers bool                 `json:"disguisedTrackers"`
 	AllowAffiliate    bool                 `json:"allowAffiliate"`
+
+	// RotatingAdDomains is "Block Rotating Ad Domains", which the API began
+	// returning in October 2026. Pointer with omitempty so a nil value is left
+	// unchanged by a PATCH and an explicit false is sent.
+	RotatingAdDomains *bool `json:"rotatingAdDomains,omitempty"`
 }
 
 // UpdatePrivacyRequest encapsulates the request for updating the privacy settings of a profile.

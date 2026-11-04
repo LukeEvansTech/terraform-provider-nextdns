@@ -138,6 +138,23 @@ resource "nextdns_privacy" "this" {
 `)
 }
 
+// Privacy with rotating_ad_domains omitted while the API returns it: v0.3.0
+// state has no such attribute, and the read must fill it without a diff.
+func TestMigration_PrivacyRotatingAdDomainsOmitted(t *testing.T) {
+	f := newFakeAPI(t)
+	f.seed("abc123", "privacy", `{"disguisedTrackers": true, "allowAffiliate": false, "rotatingAdDomains": true}`)
+	f.seed("abc123", "privacy/blocklists", `[]`)
+	f.seed("abc123", "privacy/natives", `[]`)
+	migrationTest(t, providerBlock(f)+`
+resource "nextdns_privacy" "this" {
+  profile_id         = "abc123"
+  allow_affiliate    = false
+  disguised_trackers = true
+  blocklists         = ["hagezi-multi-pro"]
+}
+`)
+}
+
 func TestMigration_Security(t *testing.T) {
 	f := newFakeAPI(t)
 	f.seed("abc123", "security", securityLive)

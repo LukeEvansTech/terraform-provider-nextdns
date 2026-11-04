@@ -25,6 +25,7 @@ type privacyModel struct {
 	ProfileID         types.String `tfsdk:"profile_id"`
 	AllowAffiliate    types.Bool   `tfsdk:"allow_affiliate"`
 	DisguisedTrackers types.Bool   `tfsdk:"disguised_trackers"`
+	RotatingAdDomains types.Bool   `tfsdk:"rotating_ad_domains"`
 	Blocklists        types.List   `tfsdk:"blocklists"`
 	Natives           types.List   `tfsdk:"natives"`
 }
@@ -50,6 +51,7 @@ func (r *privacyResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "Block disguised third-party trackers.",
 				Required:    true,
 			},
+			"rotating_ad_domains": extendedSwitch("Block rotating ad domains (API: `rotatingAdDomains`). Returned by the API since October 2026."),
 			"blocklists": schema.ListAttribute{
 				Description: "Blocklists.",
 				ElementType: types.StringType,
@@ -69,18 +71,20 @@ func (r *privacyResource) Configure(_ context.Context, req resource.ConfigureReq
 }
 
 func (r *privacyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	r.write(ctx, req.Plan, &resp.State, &resp.Diagnostics)
+	r.write(ctx, req.Config, req.Plan, &resp.State, &resp.Diagnostics)
 }
 
 func (r *privacyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	r.write(ctx, req.Plan, &resp.State, &resp.Diagnostics)
+	r.write(ctx, req.Config, req.Plan, &resp.State, &resp.Diagnostics)
 }
 
 // write sends the lists to their own endpoints (a full replace; an omitted
 // list clears it), then PATCHes the switches, as the SDKv2 resource did.
-func (r *privacyResource) write(ctx context.Context, plan tfsdk.Plan, state *tfsdk.State, diags *diag.Diagnostics) {
-	var m privacyModel
+// rotating_ad_domains is sent only when the configuration sets it.
+func (r *privacyResource) write(ctx context.Context, config tfsdk.Config, plan tfsdk.Plan, state *tfsdk.State, diags *diag.Diagnostics) {
+	var m, cfg privacyModel
 	diags.Append(plan.Get(ctx, &m)...)
+	diags.Append(config.Get(ctx, &cfg)...)
 	if diags.HasError() {
 		return
 	}
@@ -89,6 +93,7 @@ func (r *privacyResource) write(ctx context.Context, plan tfsdk.Plan, state *tfs
 	privacy := &nextdns.Privacy{
 		AllowAffiliate:    m.AllowAffiliate.ValueBool(),
 		DisguisedTrackers: m.DisguisedTrackers.ValueBool(),
+		RotatingAdDomains: boolPointer(cfg.RotatingAdDomains),
 		Blocklists:        []*nextdns.PrivacyBlocklists{},
 		Natives:           []*nextdns.PrivacyNatives{},
 	}
@@ -117,6 +122,15 @@ func (r *privacyResource) write(ctx context.Context, plan tfsdk.Plan, state *tfs
 	if err := r.client.Privacy.Update(ctx, &nextdns.UpdatePrivacyRequest{ProfileID: profileID, Privacy: privacy}); err != nil {
 		diags.AddError("Error writing privacy settings", err.Error())
 		return
+	}
+
+	if m.RotatingAdDomains.IsUnknown() {
+		live, err := r.client.Privacy.Get(ctx, &nextdns.GetPrivacyRequest{ProfileID: profileID})
+		if err != nil {
+			diags.AddError("Error reading back privacy settings", err.Error())
+			return
+		}
+		m.RotatingAdDomains = types.BoolPointerValue(live.RotatingAdDomains)
 	}
 
 	m.ID = m.ProfileID
@@ -148,12 +162,17 @@ func (r *privacyResource) Read(ctx context.Context, req resource.ReadRequest, re
 	m.ID = m.ProfileID
 	m.AllowAffiliate = types.BoolValue(privacy.AllowAffiliate)
 	m.DisguisedTrackers = types.BoolValue(privacy.DisguisedTrackers)
+	// rotatingAdDomains the API does not return keeps its last known value.
+	if privacy.RotatingAdDomains != nil {
+		m.RotatingAdDomains = types.BoolValue(*privacy.RotatingAdDomains)
+	}
 	m.Blocklists = stringListFromAPI(blocklists, m.Blocklists)
 	m.Natives = stringListFromAPI(natives, m.Natives)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &m)...)
 }
 
-// Delete clears both lists and resets the switches to false.
+// Delete clears both lists and resets the two original switches to false,
+// leaving rotating_ad_domains as it is.
 func (r *privacyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var m privacyModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &m)...)

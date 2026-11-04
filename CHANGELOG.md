@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added: `nextdns_privacy.rotating_ad_domains` (API `privacy.rotatingAdDomains`, "Block Rotating Ad Domains"), which the API began returning in October 2026. Optional + Computed like the extended security switches: omitted keeps the live value, and an explicit true/false is written. `Delete` leaves it unchanged.
+
 ## v0.4.1 (2026-09-23)
 
 - Changed: `nextdns_setup_linkedip.update_token` is marked sensitive, because it authorises changing the profile's linked IP. Plans redact it, and an output that exposes it now needs `sensitive = true`. The value in state is unchanged.
