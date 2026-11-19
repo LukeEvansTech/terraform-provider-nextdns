@@ -21,10 +21,15 @@ import (
 // pre-existing profile.
 //
 // fast_flux_networks and dns_data_exfiltration are hidden in the dashboard
-// for some profiles, and newly_active_domains only recently appeared in the
-// API, so a write to any of them is the thing in doubt. They are
+// for some profiles, and newly_active_domains and
+// algorithmically_generated_domains only recently appeared in the API, so a
+// write to any of them is the thing in doubt. They are
 // flipped true, read back, then flipped false and read back again: writing
 // false alone would pass whether or not the API honours the field.
+//
+// idn_homographs, typo_squatting and dga are written false: the API now
+// documents all three as deprecated, ignores writes to them and always reads
+// them back false, so true would plan a change forever.
 //
 //	TF_ACC=1 NEXTDNS_API_KEY=... go test ./nextdns/ -run TestAccLive -v
 func TestAccLive_ExtendedAttributesRoundTrip(t *testing.T) {
@@ -52,9 +57,9 @@ resource "nextdns_security" "acc" {
   google_safe_browsing      = false
   crypto_jacking            = true
   dns_rebinding             = true
-  idn_homographs            = true
-  typo_squatting            = true
-  dga                       = true
+  idn_homographs            = false
+  typo_squatting            = false
+  dga                       = false
   nrd                       = true
   ddns                      = true
   parking                   = true
@@ -72,6 +77,8 @@ resource "nextdns_security" "acc" {
   decentralized_web_gateways = false
   high_risk_tlds             = %[2]t
   newly_active_domains       = %[4]t
+
+  algorithmically_generated_domains = %[4]t
 }
 
 resource "nextdns_settings" "acc" {
@@ -163,13 +170,14 @@ resource "nextdns_settings" "acc" {
 }
 
 // checkLiveSwitches asserts the live security switches on the throwaway
-// profile: the three whose writes are in doubt must be present and equal
+// profile: the four whose writes are in doubt must be present and equal
 // wantHidden, and the other extended switches must not be true.
 func checkLiveSwitches(t *testing.T, sec *nextdns.Security, wantHidden bool) error {
 	t.Helper()
 	for k, v := range map[string]*bool{
 		"fastFluxNetworks": sec.FastFluxNetworks, "dnsDataExfiltration": sec.DNSDataExfiltration,
-		"newlyActiveDomains": sec.NewlyActiveDomains,
+		"newlyActiveDomains":              sec.NewlyActiveDomains,
+		"algorithmicallyGeneratedDomains": sec.AlgorithmicallyGeneratedDomains,
 	} {
 		if v == nil {
 			return fmt.Errorf("live API did not return %s", k)

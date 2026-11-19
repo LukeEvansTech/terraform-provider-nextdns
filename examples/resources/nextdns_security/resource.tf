@@ -6,9 +6,9 @@ resource "nextdns_security" "this" {
   google_safe_browsing      = false
   crypto_jacking            = true
   dns_rebinding             = true
-  idn_homographs            = true
-  typo_squatting            = true
-  dga                       = true
+  idn_homographs            = false
+  typo_squatting            = false
+  dga                       = false
   nrd                       = true
   ddns                      = true
   parking                   = true
@@ -27,6 +27,8 @@ resource "nextdns_security" "this" {
   decentralized_web_gateways = false
   high_risk_tlds             = false
   newly_active_domains       = false
+
+  algorithmically_generated_domains = false
 
   # fast_flux_networks and dns_data_exfiltration are returned by the API but
   # hidden in the dashboard for some profiles; omit them until a write has

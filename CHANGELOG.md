@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added: `nextdns_security.algorithmically_generated_domains` (API `security.algorithmicallyGeneratedDomains`), which the API began returning in October 2026. Optional + Computed like the other extended switches, and covered by the live round-trip test. It is a separate switch from `dga`, which the NextDNS API now documents as deprecated: `dga` always reads back `false` and writes to it are ignored.
+
+- Changed: `idn_homographs`, `typo_squatting` and `dga` are documented as deprecated by NextDNS, and the examples and the live test now write them `false`. They stay required attributes, so existing configurations keep working; one that declares `true` plans the same change on every run until it is set to `false`.
+
 ## v0.4.1 (2026-09-23)
 
 - Changed: `nextdns_setup_linkedip.update_token` is marked sensitive, because it authorises changing the profile's linked IP. Plans redact it, and an output that exposes it now needs `sensitive = true`. The value in state is unchanged.

@@ -29,17 +29,18 @@ type Security struct {
 	// omitted from a PATCH and left unchanged server-side; an explicit false
 	// is sent. A GET that does not return a key leaves its pointer nil, which
 	// is how callers tell "not offered on this profile" from "off".
-	FreeHostingDomains       *bool `json:"freeHostingDomains,omitempty"`
-	TunnelingEndpoints       *bool `json:"tunnelingEndpoints,omitempty"`
-	DataDropServices         *bool `json:"dataDropServices,omitempty"`
-	ResidentialHosting       *bool `json:"residentialHosting,omitempty"`
-	UntrustedCertificates    *bool `json:"untrustedCertificates,omitempty"`
-	FastFluxNetworks         *bool `json:"fastFluxNetworks,omitempty"`
-	DNSDataExfiltration      *bool `json:"dnsDataExfiltration,omitempty"`
-	DNSPayloadDelivery       *bool `json:"dnsPayloadDelivery,omitempty"`
-	DecentralizedWebGateways *bool `json:"decentralizedWebGateways,omitempty"`
-	HighRiskTlds             *bool `json:"highRiskTlds,omitempty"`
-	NewlyActiveDomains       *bool `json:"newlyActiveDomains,omitempty"`
+	FreeHostingDomains              *bool `json:"freeHostingDomains,omitempty"`
+	TunnelingEndpoints              *bool `json:"tunnelingEndpoints,omitempty"`
+	DataDropServices                *bool `json:"dataDropServices,omitempty"`
+	ResidentialHosting              *bool `json:"residentialHosting,omitempty"`
+	UntrustedCertificates           *bool `json:"untrustedCertificates,omitempty"`
+	FastFluxNetworks                *bool `json:"fastFluxNetworks,omitempty"`
+	DNSDataExfiltration             *bool `json:"dnsDataExfiltration,omitempty"`
+	DNSPayloadDelivery              *bool `json:"dnsPayloadDelivery,omitempty"`
+	DecentralizedWebGateways        *bool `json:"decentralizedWebGateways,omitempty"`
+	HighRiskTlds                    *bool `json:"highRiskTlds,omitempty"`
+	NewlyActiveDomains              *bool `json:"newlyActiveDomains,omitempty"`
+	AlgorithmicallyGeneratedDomains *bool `json:"algorithmicallyGeneratedDomains,omitempty"`
 }
 
 // UpdateSecurityRequest encapsulates the request for updating security settings.
