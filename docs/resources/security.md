@@ -21,9 +21,9 @@ resource "nextdns_security" "this" {
   google_safe_browsing      = false
   crypto_jacking            = true
   dns_rebinding             = true
-  idn_homographs            = true
-  typo_squatting            = true
-  dga                       = true
+  idn_homographs            = false
+  typo_squatting            = false
+  dga                       = false
   nrd                       = true
   ddns                      = true
   parking                   = true
@@ -43,6 +43,8 @@ resource "nextdns_security" "this" {
   high_risk_tlds             = false
   newly_active_domains       = false
 
+  algorithmically_generated_domains = false
+
   # fast_flux_networks and dns_data_exfiltration are returned by the API but
   # hidden in the dashboard for some profiles; omit them until a write has
   # been proven to take effect on yours.
@@ -58,18 +60,19 @@ resource "nextdns_security" "this" {
 - `crypto_jacking` (Boolean) Cryptojacking protection.
 - `csam` (Boolean) Block child sexual abuse material.
 - `ddns` (Boolean) Block dynamic DNS hostnames.
-- `dga` (Boolean) Domain generation algorithms (DGAs) protection.
+- `dga` (Boolean) Domain generation algorithms (DGAs) protection. Deprecated by NextDNS: the API ignores writes and always returns `false`, so set it to `false`.
 - `dns_rebinding` (Boolean) DNS rebinding protection.
 - `google_safe_browsing` (Boolean) Google safe browsing.
-- `idn_homographs` (Boolean) IDN homograph attacks protection.
+- `idn_homographs` (Boolean) IDN homograph attacks protection. Deprecated by NextDNS: the API ignores writes and always returns `false`, so set it to `false`. The protection is now part of `ai_threat_detection`.
 - `nrd` (Boolean) Block newly registered domains (NRDs).
 - `parking` (Boolean) Block parked domains.
 - `profile_id` (String) The profile identifier to target the resource.
 - `threat_intelligence_feeds` (Boolean) Threat intelligence feeds.
-- `typo_squatting` (Boolean) Typosquatting protection.
+- `typo_squatting` (Boolean) Typosquatting protection. Deprecated by NextDNS: the API ignores writes and always returns `false`, so set it to `false`. The protection is now part of `ai_threat_detection`.
 
 ### Optional
 
+- `algorithmically_generated_domains` (Boolean) Block algorithmically generated domains (API: `algorithmicallyGeneratedDomains`). Returned by the API since October 2026; a separate switch from the deprecated `dga`.
 - `data_drop_services` (Boolean) Block data drop / paste services (API: `dataDropServices`).
 - `decentralized_web_gateways` (Boolean) Block decentralized web (IPFS, ENS) gateways (API: `decentralizedWebGateways`).
 - `dns_data_exfiltration` (Boolean) Block DNS data exfiltration (API: `dnsDataExfiltration`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified.

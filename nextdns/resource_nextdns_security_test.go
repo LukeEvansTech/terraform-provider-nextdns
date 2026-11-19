@@ -16,21 +16,23 @@ const securityLive = `{
   "freeHostingDomains": false, "tunnelingEndpoints": false, "dataDropServices": false,
   "residentialHosting": false, "untrustedCertificates": false, "fastFluxNetworks": false,
   "dnsDataExfiltration": false, "dnsPayloadDelivery": false, "decentralizedWebGateways": false,
-  "highRiskTlds": false, "newlyActiveDomains": false
+  "highRiskTlds": false, "newlyActiveDomains": false,
+  "algorithmicallyGeneratedDomains": false
 }`
 
 var extendedSecurityAttrs = map[string]string{
-	"free_hosting_domains":       "freeHostingDomains",
-	"tunneling_endpoints":        "tunnelingEndpoints",
-	"data_drop_services":         "dataDropServices",
-	"residential_hosting":        "residentialHosting",
-	"untrusted_certificates":     "untrustedCertificates",
-	"fast_flux_networks":         "fastFluxNetworks",
-	"dns_data_exfiltration":      "dnsDataExfiltration",
-	"dns_payload_delivery":       "dnsPayloadDelivery",
-	"decentralized_web_gateways": "decentralizedWebGateways",
-	"high_risk_tlds":             "highRiskTlds",
-	"newly_active_domains":       "newlyActiveDomains",
+	"free_hosting_domains":              "freeHostingDomains",
+	"tunneling_endpoints":               "tunnelingEndpoints",
+	"data_drop_services":                "dataDropServices",
+	"residential_hosting":               "residentialHosting",
+	"untrusted_certificates":            "untrustedCertificates",
+	"fast_flux_networks":                "fastFluxNetworks",
+	"dns_data_exfiltration":             "dnsDataExfiltration",
+	"dns_payload_delivery":              "dnsPayloadDelivery",
+	"decentralized_web_gateways":        "decentralizedWebGateways",
+	"high_risk_tlds":                    "highRiskTlds",
+	"newly_active_domains":              "newlyActiveDomains",
+	"algorithmically_generated_domains": "algorithmicallyGeneratedDomains",
 }
 
 func securityConfig(f *fakeAPI, extra string) string {

@@ -39,17 +39,18 @@ type securityModel struct {
 	Csam                    types.Bool   `tfsdk:"csam"`
 	Tlds                    types.List   `tfsdk:"tlds"`
 
-	FreeHostingDomains       types.Bool `tfsdk:"free_hosting_domains"`
-	TunnelingEndpoints       types.Bool `tfsdk:"tunneling_endpoints"`
-	DataDropServices         types.Bool `tfsdk:"data_drop_services"`
-	ResidentialHosting       types.Bool `tfsdk:"residential_hosting"`
-	UntrustedCertificates    types.Bool `tfsdk:"untrusted_certificates"`
-	FastFluxNetworks         types.Bool `tfsdk:"fast_flux_networks"`
-	DNSDataExfiltration      types.Bool `tfsdk:"dns_data_exfiltration"`
-	DNSPayloadDelivery       types.Bool `tfsdk:"dns_payload_delivery"`
-	DecentralizedWebGateways types.Bool `tfsdk:"decentralized_web_gateways"`
-	HighRiskTlds             types.Bool `tfsdk:"high_risk_tlds"`
-	NewlyActiveDomains       types.Bool `tfsdk:"newly_active_domains"`
+	FreeHostingDomains              types.Bool `tfsdk:"free_hosting_domains"`
+	TunnelingEndpoints              types.Bool `tfsdk:"tunneling_endpoints"`
+	DataDropServices                types.Bool `tfsdk:"data_drop_services"`
+	ResidentialHosting              types.Bool `tfsdk:"residential_hosting"`
+	UntrustedCertificates           types.Bool `tfsdk:"untrusted_certificates"`
+	FastFluxNetworks                types.Bool `tfsdk:"fast_flux_networks"`
+	DNSDataExfiltration             types.Bool `tfsdk:"dns_data_exfiltration"`
+	DNSPayloadDelivery              types.Bool `tfsdk:"dns_payload_delivery"`
+	DecentralizedWebGateways        types.Bool `tfsdk:"decentralized_web_gateways"`
+	HighRiskTlds                    types.Bool `tfsdk:"high_risk_tlds"`
+	NewlyActiveDomains              types.Bool `tfsdk:"newly_active_domains"`
+	AlgorithmicallyGeneratedDomains types.Bool `tfsdk:"algorithmically_generated_domains"`
 }
 
 // securitySwitch pairs an extended switch in the model with its API field,
@@ -72,6 +73,7 @@ func (m *securityModel) extended(s *nextdns.Security) []securitySwitch {
 		{&m.DecentralizedWebGateways, &s.DecentralizedWebGateways},
 		{&m.HighRiskTlds, &s.HighRiskTlds},
 		{&m.NewlyActiveDomains, &s.NewlyActiveDomains},
+		{&m.AlgorithmicallyGeneratedDomains, &s.AlgorithmicallyGeneratedDomains},
 	}
 }
 
@@ -96,9 +98,9 @@ func (r *securityResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"google_safe_browsing":      required("Google safe browsing."),
 			"crypto_jacking":            required("Cryptojacking protection."),
 			"dns_rebinding":             required("DNS rebinding protection."),
-			"idn_homographs":            required("IDN homograph attacks protection."),
-			"typo_squatting":            required("Typosquatting protection."),
-			"dga":                       required("Domain generation algorithms (DGAs) protection."),
+			"idn_homographs":            required("IDN homograph attacks protection. Deprecated by NextDNS: the API ignores writes and always returns `false`, so set it to `false`. The protection is now part of `ai_threat_detection`."),
+			"typo_squatting":            required("Typosquatting protection. Deprecated by NextDNS: the API ignores writes and always returns `false`, so set it to `false`. The protection is now part of `ai_threat_detection`."),
+			"dga":                       required("Domain generation algorithms (DGAs) protection. Deprecated by NextDNS: the API ignores writes and always returns `false`, so set it to `false`."),
 			"nrd":                       required("Block newly registered domains (NRDs)."),
 			"ddns":                      required("Block dynamic DNS hostnames."),
 			"parking":                   required("Block parked domains."),
@@ -112,17 +114,18 @@ func (r *securityResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			// Extended switches (v0.3.0). Optional + Computed: omitting one keeps
 			// the live value and records it in state; an explicit true/false is
 			// written; one the API stops returning keeps its last known value.
-			"free_hosting_domains":       extendedSwitch("Block domains on free hosting providers (API: `freeHostingDomains`)."),
-			"tunneling_endpoints":        extendedSwitch("Block tunneling and DNS-over-anything endpoints (API: `tunnelingEndpoints`)."),
-			"data_drop_services":         extendedSwitch("Block data drop / paste services (API: `dataDropServices`)."),
-			"residential_hosting":        extendedSwitch("Block domains served from residential IP space (API: `residentialHosting`)."),
-			"untrusted_certificates":     extendedSwitch("Block domains presenting untrusted certificates (API: `untrustedCertificates`)."),
-			"fast_flux_networks":         extendedSwitch("Block fast-flux networks (API: `fastFluxNetworks`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified."),
-			"dns_data_exfiltration":      extendedSwitch("Block DNS data exfiltration (API: `dnsDataExfiltration`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified."),
-			"dns_payload_delivery":       extendedSwitch("Block DNS payload delivery (API: `dnsPayloadDelivery`)."),
-			"decentralized_web_gateways": extendedSwitch("Block decentralized web (IPFS, ENS) gateways (API: `decentralizedWebGateways`)."),
-			"high_risk_tlds":             extendedSwitch("Block high-risk TLDs (API: `highRiskTlds`)."),
-			"newly_active_domains":       extendedSwitch("Block newly active domains (API: `newlyActiveDomains`). Returned by the API since September 2026."),
+			"free_hosting_domains":              extendedSwitch("Block domains on free hosting providers (API: `freeHostingDomains`)."),
+			"tunneling_endpoints":               extendedSwitch("Block tunneling and DNS-over-anything endpoints (API: `tunnelingEndpoints`)."),
+			"data_drop_services":                extendedSwitch("Block data drop / paste services (API: `dataDropServices`)."),
+			"residential_hosting":               extendedSwitch("Block domains served from residential IP space (API: `residentialHosting`)."),
+			"untrusted_certificates":            extendedSwitch("Block domains presenting untrusted certificates (API: `untrustedCertificates`)."),
+			"fast_flux_networks":                extendedSwitch("Block fast-flux networks (API: `fastFluxNetworks`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified."),
+			"dns_data_exfiltration":             extendedSwitch("Block DNS data exfiltration (API: `dnsDataExfiltration`). Hidden in the dashboard for some profiles; the API returns it, but enforcement is unverified."),
+			"dns_payload_delivery":              extendedSwitch("Block DNS payload delivery (API: `dnsPayloadDelivery`)."),
+			"decentralized_web_gateways":        extendedSwitch("Block decentralized web (IPFS, ENS) gateways (API: `decentralizedWebGateways`)."),
+			"high_risk_tlds":                    extendedSwitch("Block high-risk TLDs (API: `highRiskTlds`)."),
+			"newly_active_domains":              extendedSwitch("Block newly active domains (API: `newlyActiveDomains`). Returned by the API since September 2026."),
+			"algorithmically_generated_domains": extendedSwitch("Block algorithmically generated domains (API: `algorithmicallyGeneratedDomains`). Returned by the API since October 2026; a separate switch from the deprecated `dga`."),
 		},
 	}
 }

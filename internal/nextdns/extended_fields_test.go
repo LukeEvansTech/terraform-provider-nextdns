@@ -12,8 +12,9 @@ import (
 )
 
 // extendedSecurityKeys are the security switches the NextDNS API exposes but
-// upstream nextdns-go v0.5.0 did not model: ten added in v0.3.0, and
-// newlyActiveDomains, which the API began returning in September 2026.
+// upstream nextdns-go v0.5.0 did not model: ten added in v0.3.0,
+// newlyActiveDomains, which the API began returning in September 2026, and
+// algorithmicallyGeneratedDomains, which it began returning in October 2026.
 var extendedSecurityKeys = []string{
 	"freeHostingDomains",
 	"tunnelingEndpoints",
@@ -26,6 +27,7 @@ var extendedSecurityKeys = []string{
 	"decentralizedWebGateways",
 	"highRiskTlds",
 	"newlyActiveDomains",
+	"algorithmicallyGeneratedDomains",
 }
 
 // capturePatch returns a test server that records the JSON body of the last
@@ -81,17 +83,18 @@ func TestSecurityUpdateSendsExplicitExtendedValues(t *testing.T) {
 	err = client.Security.Update(context.Background(), &UpdateSecurityRequest{
 		ProfileID: "abc123",
 		Security: &Security{
-			FreeHostingDomains:       Bool(false),
-			TunnelingEndpoints:       Bool(true),
-			DataDropServices:         Bool(false),
-			ResidentialHosting:       Bool(false),
-			UntrustedCertificates:    Bool(false),
-			FastFluxNetworks:         Bool(false),
-			DNSDataExfiltration:      Bool(false),
-			DNSPayloadDelivery:       Bool(false),
-			DecentralizedWebGateways: Bool(false),
-			HighRiskTlds:             Bool(false),
-			NewlyActiveDomains:       Bool(false),
+			FreeHostingDomains:              Bool(false),
+			TunnelingEndpoints:              Bool(true),
+			DataDropServices:                Bool(false),
+			ResidentialHosting:              Bool(false),
+			UntrustedCertificates:           Bool(false),
+			FastFluxNetworks:                Bool(false),
+			DNSDataExfiltration:             Bool(false),
+			DNSPayloadDelivery:              Bool(false),
+			DecentralizedWebGateways:        Bool(false),
+			HighRiskTlds:                    Bool(false),
+			NewlyActiveDomains:              Bool(false),
+			AlgorithmicallyGeneratedDomains: Bool(false),
 		},
 	})
 	c.NoErr(err)
@@ -144,6 +147,7 @@ func TestSecurityGetExtendedFieldsAbsent(t *testing.T) {
 		sec.FreeHostingDomains, sec.TunnelingEndpoints, sec.DataDropServices, sec.ResidentialHosting,
 		sec.UntrustedCertificates, sec.FastFluxNetworks, sec.DNSDataExfiltration, sec.DNSPayloadDelivery,
 		sec.DecentralizedWebGateways, sec.HighRiskTlds, sec.NewlyActiveDomains,
+		sec.AlgorithmicallyGeneratedDomains,
 	} {
 		c.True(p == nil)
 	}

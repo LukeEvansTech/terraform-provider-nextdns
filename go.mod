@@ -1,6 +1,6 @@
 module github.com/LukeEvansTech/terraform-provider-nextdns
 
-go 1.26.8
+go 1.26.11
 
 require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -73,7 +73,7 @@ require (
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect

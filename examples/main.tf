@@ -98,7 +98,7 @@ resource "nextdns_security" "this" {
   crypto_jacking            = false
   dns_rebinding             = true
   idn_homographs            = false
-  typo_squatting            = true
+  typo_squatting            = false
   dga                       = false
   nrd                       = true
   ddns                      = false
@@ -114,6 +114,8 @@ resource "nextdns_security" "this" {
   decentralized_web_gateways = false
   high_risk_tlds             = false
   newly_active_domains       = false
+
+  algorithmically_generated_domains = false
 
   tlds = toset([
     "pizza",
