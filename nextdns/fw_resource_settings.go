@@ -206,7 +206,7 @@ func (r *settingsResource) write(ctx context.Context, config tfsdk.Config, plan 
 			CnameFlattening: m.Performance[0].CnameFlattening.ValueBool(),
 		},
 		Web3: m.Web3.ValueBool(),
-		Bav:  boolPointer(cfg.Bav),
+		Bav:  configuredBool(cfg.Bav, m.Bav),
 	}
 
 	if err := r.client.SettingsLogs.Update(ctx, &nextdns.UpdateSettingsLogsRequest{ProfileID: profileID, SettingsLogs: settings.Logs}); err != nil {

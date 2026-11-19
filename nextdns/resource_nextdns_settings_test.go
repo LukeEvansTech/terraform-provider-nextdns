@@ -3,6 +3,7 @@ package nextdns
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -168,6 +169,42 @@ func TestSettings_ImportReadsBav(t *testing.T) {
 					}
 					return nil
 				},
+			},
+		},
+	})
+}
+
+// With ignore_changes on bypass_age_verification, an update to another
+// attribute must send the planned value (the live one), not the one in config.
+func TestSettings_IgnoreChangesSendsPlannedBav(t *testing.T) {
+	f := newFakeAPI(t)
+	seedSettings(f, `, "bav": false`)
+
+	ignored := `  bypass_age_verification = false
+  lifecycle {
+    ignore_changes = [bypass_age_verification]
+  }
+`
+	web3Off := strings.Replace(settingsConfig(f, ignored), "web3       = true", "web3       = false", 1)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{Config: settingsConfig(f, ignored)},
+			{
+				PreConfig: func() { f.seed("abc123", "settings", `{"bav": true}`) },
+				Config:    web3Off,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("nextdns_settings.this", "bypass_age_verification", "true"),
+					func(_ *terraformState) error {
+						if v, _ := f.get("abc123", "settings", "bav"); v != true {
+							return fmt.Errorf("API bav = %v, want true: the update overwrote an ignored value", v)
+						}
+						if v, _ := f.get("abc123", "settings", "web3"); v != false {
+							return fmt.Errorf("API web3 = %v, want false", v)
+						}
+						return nil
+					},
+				),
 			},
 		},
 	})

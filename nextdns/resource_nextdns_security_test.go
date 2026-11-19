@@ -256,3 +256,39 @@ func TestSecurity_ImportReadsExtendedAttributes(t *testing.T) {
 		},
 	})
 }
+
+// With ignore_changes on an extended switch, an update to another attribute
+// must send the planned value (the live one), not the value in config.
+func TestSecurity_IgnoreChangesSendsPlannedValue(t *testing.T) {
+	f := newFakeAPI(t)
+	f.seed("abc123", "security", securityLive)
+	f.seed("abc123", "security/tlds", `[]`)
+
+	ignored := `  high_risk_tlds = false
+  lifecycle {
+    ignore_changes = [high_risk_tlds]
+  }
+`
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{Config: securityConfig(f, ignored)},
+			{
+				PreConfig: func() { f.seed("abc123", "security", `{"highRiskTlds": true}`) },
+				Config:    securityConfig(f, ignored+`  fast_flux_networks = true`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("nextdns_security.this", "high_risk_tlds", "true"),
+					func(_ *terraformState) error {
+						if v, _ := f.get("abc123", "security", "highRiskTlds"); v != true {
+							return fmt.Errorf("API highRiskTlds = %v, want true: the update overwrote an ignored value", v)
+						}
+						if v, _ := f.get("abc123", "security", "fastFluxNetworks"); v != true {
+							return fmt.Errorf("API fastFluxNetworks = %v, want true", v)
+						}
+						return nil
+					},
+				),
+			},
+		},
+	})
+}

@@ -157,7 +157,7 @@ func (r *securityResource) Update(ctx context.Context, req resource.UpdateReques
 // write PUTs the TLD list and PATCHes the switches. An extended switch is
 // sent only when the configuration sets it, which is why the config is read
 // and not just the plan: in the plan an omitted switch already carries the
-// prior state's value.
+// prior state's value. The value sent is the planned one (see configuredBool).
 func (r *securityResource) write(ctx context.Context, config tfsdk.Config, plan tfsdk.Plan, state *tfsdk.State, diags *diag.Diagnostics) {
 	var m, cfg securityModel
 	diags.Append(plan.Get(ctx, &m)...)
@@ -185,8 +185,9 @@ func (r *securityResource) write(ctx context.Context, config tfsdk.Config, plan 
 	for _, id := range stringIDs(ctx, m.Tlds, diags) {
 		sec.Tlds = append(sec.Tlds, &nextdns.SecurityTlds{ID: id})
 	}
-	for _, sw := range cfg.extended(sec) {
-		*sw.api = boolPointer(*sw.attr)
+	planned := m.extended(sec)
+	for i, sw := range cfg.extended(sec) {
+		*sw.api = configuredBool(*sw.attr, *planned[i].attr)
 	}
 	if diags.HasError() {
 		return
@@ -287,6 +288,21 @@ func (r *securityResource) Delete(ctx context.Context, req resource.DeleteReques
 
 func (r *securityResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	importProfileID(ctx, req, resp)
+}
+
+// configuredBool returns the value to send for an Optional + Computed switch:
+// nil when the configuration omits it, so the live value is preserved, and
+// otherwise the planned value. The plan and the configuration differ under
+// ignore_changes, where the plan keeps the prior value and sending the
+// configured one would overwrite it.
+func configuredBool(cfg, plan types.Bool) *bool {
+	if cfg.IsNull() {
+		return nil
+	}
+	if v := boolPointer(plan); v != nil {
+		return v
+	}
+	return boolPointer(cfg)
 }
 
 // boolPointer returns nil for a null or unknown value, else a pointer.

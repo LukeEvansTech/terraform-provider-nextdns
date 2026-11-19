@@ -198,3 +198,45 @@ func TestPrivacy_ImportReadsRotatingAdDomains(t *testing.T) {
 		},
 	})
 }
+
+// With ignore_changes on the switch, an update to another attribute must send
+// the planned value (the live one), not the value still written in config.
+func TestPrivacy_IgnoreChangesSendsPlannedRotatingAdDomains(t *testing.T) {
+	f := newFakeAPI(t)
+	seedPrivacy(f)
+
+	ignored := `  rotating_ad_domains = false
+  lifecycle {
+    ignore_changes = [rotating_ad_domains]
+  }
+`
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV5ProviderFactories: protoV5ProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: privacyConfig(f, ignored),
+				Check: func(_ *terraformState) error {
+					if v, _ := f.get("abc123", "privacy", "rotatingAdDomains"); v != false {
+						return fmt.Errorf("API rotatingAdDomains = %v, want false", v)
+					}
+					return nil
+				},
+			},
+			{
+				// Someone turns it on outside OpenTofu, then an unrelated
+				// attribute changes in configuration.
+				PreConfig: func() { f.seed("abc123", "privacy", `{"rotatingAdDomains": true}`) },
+				Config:    privacyConfig(f, ignored+`  natives = ["apple"]`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("nextdns_privacy.this", "rotating_ad_domains", "true"),
+					func(_ *terraformState) error {
+						if v, _ := f.get("abc123", "privacy", "rotatingAdDomains"); v != true {
+							return fmt.Errorf("API rotatingAdDomains = %v, want true: the update overwrote an ignored value", v)
+						}
+						return nil
+					},
+				),
+			},
+		},
+	})
+}

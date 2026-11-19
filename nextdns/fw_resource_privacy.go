@@ -93,7 +93,7 @@ func (r *privacyResource) write(ctx context.Context, config tfsdk.Config, plan t
 	privacy := &nextdns.Privacy{
 		AllowAffiliate:    m.AllowAffiliate.ValueBool(),
 		DisguisedTrackers: m.DisguisedTrackers.ValueBool(),
-		RotatingAdDomains: boolPointer(cfg.RotatingAdDomains),
+		RotatingAdDomains: configuredBool(cfg.RotatingAdDomains, m.RotatingAdDomains),
 		Blocklists:        []*nextdns.PrivacyBlocklists{},
 		Natives:           []*nextdns.PrivacyNatives{},
 	}
