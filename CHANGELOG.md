@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.6.0 (2026-11-19)
 
 - Added: `nextdns_privacy.rotating_ad_domains` (API `privacy.rotatingAdDomains`, "Block Rotating Ad Domains"), which the API began returning in October 2026. Optional + Computed like the extended security switches: omitted keeps the live value, and an explicit true/false is written. `Delete` leaves it unchanged. Covered by the live round-trip test.
 - Fixed: with `ignore_changes` on an Optional + Computed switch that also has a value in configuration, an update to another attribute sent the configured value and overwrote the live one. The planned value is sent now. This affected the extended `nextdns_security` switches, `nextdns_settings.bypass_age_verification` and `nextdns_privacy.rotating_ad_domains`.
