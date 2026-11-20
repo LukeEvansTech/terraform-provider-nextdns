@@ -1,0 +1,9 @@
+# Check rows that must pass before a pull request merges (one per line).
+Docs Current
+Go Lint
+Go Test
+Go Vulncheck
+Snapshot Build + Mirror Install
+Workflow Lint
+lint / lint
+scan / Trivy (Filesystem & Secret Scan)
